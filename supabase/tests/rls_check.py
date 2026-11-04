@@ -144,6 +144,18 @@ print("\n[敏感表]")
 c, d = call("POST", "/rest/v1/takedown_request", prefer="return=minimal",
             body={"claimant_name": "測試", "claimant_contact": "x@test.invalid", "claim": "rls test"})
 check("anon 提交到下架請求", c < 300, (c, d))
+# migration 12:received_at 係法律證據,投訴人唔可以倒填;處理紀錄亦唔可以自己寫
+c, d = call("POST", "/rest/v1/takedown_request", prefer="return=minimal",
+            body={"claimant_name": "測試", "claimant_contact": "x@test.invalid", "claim": "rls test",
+                  "received_at": "2020-01-01T00:00:00Z"})
+check("anon 唔可以倒填下架請求日期", c >= 400, (c, d))
+c, d = call("POST", "/rest/v1/takedown_request", prefer="return=minimal",
+            body={"claimant_name": "測試", "claimant_contact": "x@test.invalid", "claim": "rls test",
+                  "action_note": "已處理"})
+check("anon 唔可以自己寫處理紀錄", c >= 400, (c, d))
+c, d = call("POST", "/rest/v1/takedown_request", prefer="return=minimal",
+            body={"claimant_name": "測試", "claimant_contact": "x@test.invalid", "claim": "x" * 5001})
+check("下架請求內文有長度上限", c >= 400, (c, d))
 for who, tok in (("anon", None), ("authenticated", TA)):
     c, d = call("GET", "/rest/v1/takedown_request?select=*", token=tok)
     check(f"{who} 讀唔到下架請求(投訴人資料)", c >= 400 or d == [], d)

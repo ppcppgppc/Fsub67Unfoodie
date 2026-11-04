@@ -3,6 +3,7 @@
 import type { Db } from './client';
 import type {
   ScoredRestaurant, TasteMatch, Foodie, MentionDetail, StanceTier, StanceReason,
+  Restaurant, TakedownInput,
 } from './types';
 
 /**
@@ -117,11 +118,52 @@ export async function restaurantMentions(
   }).sort((a, b) => b.sentiment_score - a.sentiment_score);
 }
 
-export async function getRestaurant(db: Db, id: string) {
+export async function getRestaurant(db: Db, id: string): Promise<Restaurant> {
   const { data, error } = await db.from('restaurant')
     .select('id, name, name_local, address, country_code, cuisine').eq('id', id).single();
   if (error) throw error;
-  return data;
+  return data as Restaurant;
+}
+
+/**
+ * 下架表格頂部「你投訴緊邊條」嘅摘要。只讀 commons 表,anon 都讀得。
+ * 讀唔到就回 null —— 表格照樣交得,唔好因為呢度失敗而擋住投訴人。
+ */
+export async function mentionSummary(db: Db, mentionId: string) {
+  const { data } = await db
+    .from('mention')
+    .select(`
+      id,
+      restaurant!inner ( name ),
+      post!inner ( url, foodie_account!inner ( foodie!inner ( id, display_name ) ) )
+    `)
+    .eq('id', mentionId)
+    .maybeSingle();
+  if (!data) return null;
+  const m = data as any;
+  return {
+    mention_id: m.id as string,
+    restaurant_name: m.restaurant.name as string,
+    post_url: m.post.url as string,
+    foodie_id: m.post.foodie_account.foodie.id as string,
+    foodie_name: m.post.foodie_account.foodie.display_name as string,
+  };
+}
+
+/**
+ * 提交下架請求。
+ * 只可以 insert,唔可以 select —— 所以一定唔可以加 .select(),
+ * 否則 PostgREST 要讀返條 row 出嚟,會撞 RLS。
+ */
+export async function submitTakedown(db: Db, input: TakedownInput) {
+  const { error } = await db.from('takedown_request').insert({
+    claimant_name: input.claimant_name.trim(),
+    claimant_contact: input.claimant_contact.trim(),
+    claim: input.claim.trim(),
+    mention_id: input.mention_id ?? null,
+    subject_foodie_id: input.subject_foodie_id ?? null,
+  });
+  if (error) throw error;
 }
 
 export async function rateRestaurant(

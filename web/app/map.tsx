@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { classify, type ScoredRestaurant } from '@unfoodie/core';
+import { classify, type ScoredRestaurant, type Signal } from '@unfoodie/core';
 
 const TONE_COLOR: Record<string, string> = {
   good: '#16794a',
@@ -54,9 +54,9 @@ export default function Map({
         boxShadow: '0 1px 4px rgba(0,0,0,.35)',
         cursor: 'pointer',
       });
-      const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
-        `<b>${r.name}</b><br/><span style="color:${TONE_COLOR[sig.tone]}">${sig.label}</span> — ${sig.detail}`,
-      );
+      // 唔用 setHTML:餐廳名將來嚟自眾包同 LLM 抽取,唔可以當 HTML 塞入去
+      const popup = new maplibregl.Popup({ offset: 14, closeButton: false })
+        .setDOMContent(popupContent(r, sig));
       markers.current.push(
         new maplibregl.Marker({ element: dot })
           .setLngLat([r.lng, r.lat])
@@ -67,4 +67,19 @@ export default function Map({
   }, [rows]);
 
   return <div id="map" ref={el} />;
+}
+
+function popupContent(r: ScoredRestaurant, sig: Signal): HTMLElement {
+  const a = document.createElement('a');
+  a.href = `/r/${r.restaurant_id}`;
+  a.className = 'map-pop';
+  const name = document.createElement('b');
+  name.textContent = r.name;
+  const label = document.createElement('span');
+  label.textContent = sig.label;
+  label.style.color = TONE_COLOR[sig.tone];
+  const detail = document.createElement('span');
+  detail.textContent = sig.detail;
+  a.append(name, label, detail);
+  return a;
 }
