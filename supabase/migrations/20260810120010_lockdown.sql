@@ -13,9 +13,21 @@
 drop policy if exists public_rating_read on user_rating;
 drop index if exists rating_public_idx;
 
-revoke all on all tables    in schema public from anon, authenticated;
-revoke all on all sequences in schema public from anon, authenticated;
-revoke all on all functions in schema public from public, anon, authenticated;
+-- 只 revoke 我哋自己嘅物件。PostGIS 同 pg_trgm 都裝喺 public,
+-- 用 "all ... in schema public" 有機會連 st_dwithin 都鎖死,
+-- 而有冇效仲視乎 extension 由邊個 role 擁有,本地同 hosted 未必一樣。
+revoke all on
+  restaurant, restaurant_external_id, foodie, foodie_account, post, mention,
+  user_foodie_stance, stance_weight, user_rating, taste_match,
+  edit_proposal, proposal_vote, contributor, audit_log, takedown_request,
+  trip, trip_item, foodie_public_stats
+from anon, authenticated;
+
+revoke all on function
+  nearby_with_score(uuid, double precision, double precision, int, real, int),
+  taste_match_foodies(uuid, int, real),
+  touch_updated_at(), enforce_stance_quota(), block_mention_delete()
+from public, anon, authenticated;
 
 alter default privileges in schema public revoke all on tables    from anon, authenticated;
 alter default privileges in schema public revoke all on sequences from anon, authenticated;

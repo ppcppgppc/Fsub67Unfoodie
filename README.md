@@ -378,20 +378,15 @@ App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模
 
 ## 部署
 
-Next.js 要接 hosted Supabase，唔可以放 GitHub Pages。
+Next.js 要接 hosted Supabase，唔可以放 GitHub Pages。全程用瀏覽器就做到：
 
-```bash
-supabase login
-```
+1. 開一個全新嘅 Supabase project，喺 SQL Editor 貼 [`supabase/deploy_all.sql`](supabase/deploy_all.sql) 跑一次
+2. Vercel 匯入呢個 repo，Root Directory 揀 `web`，加 `NEXT_PUBLIC_SUPABASE_URL` 同 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. 喺 Supabase Authentication → URL Configuration 將 Site URL 改做 Vercel 網址
 
-```bash
-supabase link --project-ref <project-ref> && supabase db push --include-seed
-```
+`deploy_all.sql` 只適用於全新 project。之後改 schema 要加新 migration，再用 `supabase db push`。
 
-Vercel 匯入呢個 repo，Root Directory 揀 `web`，加 `NEXT_PUBLIC_SUPABASE_URL` 同
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`。之後喺 Supabase Auth 將 Site URL 改做 Vercel 網址。
-
-改完 schema 或者權限，先喺本機跑 `python3 supabase/tests/rls_check.py`。
+改完 schema 或者權限，跑 `supabase/build_deploy_sql.sh` 同 `python3 supabase/tests/rls_check.py`。
 
 ## 授權（待確認）
 
