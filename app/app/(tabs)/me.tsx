@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet, Linking, ScrollView } from 'react-na
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
-import { useTheme, type Theme } from '@/lib/theme';
+import { useTheme, useAppearance, type Appearance, type Theme } from '@/lib/theme';
 import { Btn } from '@/lib/ui';
 
 export default function Me() {
@@ -10,6 +10,8 @@ export default function Me() {
   const s = st(t);
   const userId = useUser();
   const router = useRouter();
+  const { pref, setPref } = useAppearance();
+  const options: [Appearance, string][] = [['dark', '深色'], ['light', '淺色'], ['system', '跟系統']];
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={s.wrap}>
@@ -27,6 +29,21 @@ export default function Me() {
       <View style={s.box}>
         <Text style={s.boxH}>呢個 app 唔會做嘅嘢</Text>
         <Text style={s.p}>唔收廣告 · 唔向用戶收費 · 唔賣餐廳排名</Text>
+      </View>
+
+      <View style={s.box}>
+        <Text style={s.boxH}>外觀</Text>
+        <View style={s.seg} accessibilityRole="radiogroup">
+          {options.map(([v, label]) => (
+            <Pressable key={v} onPress={() => setPref(v)} accessibilityRole="radio"
+                       accessibilityState={{ checked: pref === v }}
+                       style={[s.segBtn, pref === v && { backgroundColor: t.accent }]}>
+              <Text style={{ color: pref === v ? t.onAccent : t.inkSoft, fontWeight: pref === v ? '600' : '400', fontSize: 14 }}>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
 
       <Pressable style={s.item} onPress={() => router.push('/takedown')} accessibilityRole="button">
@@ -57,4 +74,6 @@ const st = (t: Theme) => StyleSheet.create({
   item: { borderWidth: 1, borderColor: t.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, gap: 2 },
   itemTx: { color: t.ink, fontSize: 14.5, fontWeight: '500' },
   itemSub: { color: t.inkFaint, fontSize: 12 },
+  seg: { flexDirection: 'row', borderWidth: 1, borderColor: t.border, borderRadius: 10, overflow: 'hidden' },
+  segBtn: { flex: 1, alignItems: 'center', paddingVertical: 9 },
 });

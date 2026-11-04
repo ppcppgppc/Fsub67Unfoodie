@@ -18,8 +18,8 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: t.bg },
         headerTitleStyle: { color: t.ink },
         headerShadowVisible: false,
-        tabBarStyle: { backgroundColor: t.surface, borderTopColor: t.line },
-        tabBarActiveTintColor: t.ink,
+        tabBarStyle: { backgroundColor: t.sidebar, borderTopColor: t.line },
+        tabBarActiveTintColor: t.accentText,
         tabBarInactiveTintColor: t.inkFaint,
       }}
     >

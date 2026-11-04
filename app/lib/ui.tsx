@@ -42,12 +42,12 @@ export function Btn({
       onPress={onPress} disabled={disabled} accessibilityRole="button"
       style={({ pressed }) => [
         s.btn, small && s.btnSm,
-        primary ? { backgroundColor: t.ink } : { borderWidth: 1, borderColor: t.line },
+        primary ? { backgroundColor: t.accent } : { borderWidth: 1, borderColor: t.border, backgroundColor: t.surface },
         (pressed || disabled) && { opacity: 0.6 },
         style,
       ]}
     >
-      <Text style={{ color: primary ? t.bg : t.inkSoft, fontWeight: primary ? '600' : '500', fontSize: small ? 12.5 : 15 }}>
+      <Text style={{ color: primary ? t.onAccent : t.ink, fontWeight: primary ? '600' : '500', fontSize: small ? 12.5 : 15 }}>
         {label}
       </Text>
     </Pressable>

@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Pla
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
-import { useTheme, type Theme } from '@/lib/theme';
+import { useTheme, SERIF, type Theme } from '@/lib/theme';
 import { Banner, Btn } from '@/lib/ui';
 
 export default function Login() {
@@ -66,12 +66,12 @@ export default function Login() {
 
 const st = (t: Theme) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: t.bg, padding: 22, gap: 6, justifyContent: 'center' },
-  h1: { fontSize: 26, fontWeight: '700', color: t.ink, letterSpacing: -0.5 },
+  h1: { fontSize: 28, fontWeight: '500', color: t.ink, fontFamily: SERIF },
   p: { color: t.inkSoft, fontSize: 13.5, marginBottom: 14, lineHeight: 19 },
   label: { color: t.inkSoft, fontSize: 12.5, marginTop: 6 },
   input: {
     borderWidth: 1, borderColor: t.line, borderRadius: 9, padding: 12,
     color: t.ink, backgroundColor: t.surface, fontSize: 16,
   },
-  toggle: { color: t.inkSoft, fontSize: 13.5, textDecorationLine: 'underline' },
+  toggle: { color: t.accentText, fontSize: 13.5, textDecorationLine: 'underline' },
 });

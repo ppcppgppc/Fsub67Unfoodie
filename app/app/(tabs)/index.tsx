@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, SectionList, Pressable, ScrollView, RefreshControl, StyleSheet, useColorScheme,
+  View, Text, SectionList, Pressable, ScrollView, RefreshControl, StyleSheet,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
-import { useTheme, toneColor, toneBg, type Theme } from '@/lib/theme';
+import { useTheme, toneColor, toneFill, toneBg, SERIF, type Theme } from '@/lib/theme';
 import { Badge, Banner, Btn, Center } from '@/lib/ui';
 import {
   nearbyWithScore, classify, displayScore, formatDistance, signed, errMsg,
@@ -107,8 +107,8 @@ function Nearby({ userId }: { userId: string }) {
           {SPOTS.map((x, i) => (
             <Pressable key={x.name} onPress={() => pick(i)} accessibilityRole="button"
                        accessibilityState={{ selected: i === spot }}
-                       style={[s.chip, i === spot && { backgroundColor: t.ink, borderColor: t.ink }]}>
-              <Text style={[s.chipTx, i === spot && { color: t.bg }]}>{x.name}</Text>
+                       style={[s.chip, i === spot && { backgroundColor: t.accent, borderColor: t.accent }]}>
+              <Text style={[s.chipTx, i === spot && { color: t.onAccent, fontWeight: '600' }]}>{x.name}</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -120,8 +120,8 @@ function Nearby({ userId }: { userId: string }) {
             {(['list', 'map'] as const).map((v) => (
               <Pressable key={v} onPress={() => setView(v)} accessibilityRole="button"
                          accessibilityState={{ selected: view === v }}
-                         style={[s.segBtn, view === v && { backgroundColor: t.ink }]}>
-                <Text style={[s.chipTx, view === v && { color: t.bg }]}>{v === 'list' ? '清單' : '地圖'}</Text>
+                         style={[s.segBtn, view === v && { backgroundColor: t.accent }]}>
+                <Text style={[s.chipTx, view === v && { color: t.onAccent, fontWeight: '600' }]}>{v === 'list' ? '清單' : '地圖'}</Text>
               </Pressable>
             ))}
           </View>
@@ -204,7 +204,6 @@ function ScoreMap({
 }: { rows: ScoredRestaurant[]; lat: number; lng: number; onOpen: (id: string) => void }) {
   const t = useTheme();
   const s = st(t);
-  const scheme = useColorScheme();
   const map = useRef<MapView>(null);
   const [selected, setSelected] = useState<ScoredRestaurant | null>(null);
 
@@ -229,7 +228,7 @@ function ScoreMap({
         initialRegion={{ latitude: lat, longitude: lng, latitudeDelta: 0.04, longitudeDelta: 0.04 }}
         onMapReady={fit}
         onPress={() => setSelected(null)}
-        userInterfaceStyle={scheme === 'dark' ? 'dark' : 'light'}
+        userInterfaceStyle={t.isDark ? 'dark' : 'light'}
         showsPointsOfInterest={false}
         toolbarEnabled={false}
       >
@@ -247,11 +246,11 @@ function ScoreMap({
               zIndex={on ? 3 : has ? 2 : 1}
             >
               {has ? (
-                <View style={[s.pill, { backgroundColor: toneColor(t, sig.tone) }, on && s.pillOn]}>
-                  <Text style={[s.pillTx, { color: t.surface }]}>{sig.label}</Text>
+                <View style={[s.pill, { backgroundColor: toneFill(t, sig.tone) }, on && s.pillOn]}>
+                  <Text style={[s.pillTx, { color: '#ffffff' }]}>{sig.label}</Text>
                 </View>
               ) : (
-                <View style={[s.dot, { backgroundColor: t.inkFaint }]} />
+                <View style={[s.dot, { backgroundColor: t.quiet }]} />
               )}
             </Marker>
           );
@@ -261,7 +260,7 @@ function ScoreMap({
       <View style={s.legend} pointerEvents="none">
         {([['good', '推薦'], ['bad', '避／可疑'], ['warn', '值得試'], ['neutral', '未知']] as const).map(([tone, label]) => (
           <View key={tone} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <View style={[s.legendDot, { backgroundColor: toneColor(t, tone) }]} />
+            <View style={[s.legendDot, { backgroundColor: toneFill(t, tone) }]} />
             <Text style={{ color: t.inkSoft, fontSize: 11.5 }}>{label}</Text>
           </View>
         ))}
@@ -277,7 +276,7 @@ function ScoreMap({
 }
 
 const st = (t: Theme) => StyleSheet.create({
-  hero: { fontSize: 24, fontWeight: '700', color: t.ink, letterSpacing: -0.5, lineHeight: 33 },
+  hero: { fontSize: 26, fontWeight: '500', color: t.ink, lineHeight: 34, fontFamily: SERIF },
   sub: { color: t.inkSoft, fontSize: 14, lineHeight: 21 },
   note: { color: t.inkSoft, fontSize: 13, lineHeight: 19, marginTop: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 22, marginBottom: 10 },
@@ -295,16 +294,16 @@ const st = (t: Theme) => StyleSheet.create({
   h2: { color: t.inkSoft, fontSize: 14, fontWeight: '600', marginTop: 18, marginBottom: 9 },
   empty: { color: t.inkFaint, textAlign: 'center', paddingVertical: 30 },
 
-  card: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.line, borderRadius: 12, padding: 14, marginBottom: 9 },
+  card: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.line, borderRadius: 14, padding: 14, marginBottom: 9 },
   floating: { marginBottom: 0, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  name: { fontSize: 16, fontWeight: '600', color: t.ink, flexShrink: 1 },
+  name: { fontSize: 17, fontWeight: '600', color: t.ink, flexShrink: 1, fontFamily: SERIF },
   dist: { fontSize: 12, color: t.inkFaint, fontVariant: ['tabular-nums'] },
   score: { marginLeft: 'auto', fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
   detail: { color: t.inkSoft, fontSize: 13, flexShrink: 1 },
   quad: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 9 },
 
-  pill: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, borderWidth: 2, borderColor: t.surface },
-  pillOn: { transform: [{ scale: 1.15 }] },
+  pill: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, borderWidth: 2, borderColor: t.bg },
+  pillOn: { transform: [{ scale: 1.15 }], borderColor: t.accent },
   pillTx: { fontSize: 12, fontWeight: '700' },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: t.surface },
   legend: {

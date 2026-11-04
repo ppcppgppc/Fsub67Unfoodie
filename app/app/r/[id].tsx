@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, Linking } from 'react-na
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
-import { useTheme, signColor, type Theme } from '@/lib/theme';
+import { useTheme, signColor, SERIF, type Theme } from '@/lib/theme';
 import { Badge, Banner, Btn, Center } from '@/lib/ui';
 import {
   getRestaurant, restaurantMentions, rateRestaurant, myRating, contribution,
@@ -77,7 +77,7 @@ export default function Restaurant() {
           <Pressable key={x.score} onPress={() => rate(x.score)} hitSlop={4}
                      accessibilityRole="radio" accessibilityLabel={`${x.stars} 粒星：${x.label}`}
                      accessibilityState={{ checked: mine === x.score }}>
-            <Text style={{ fontSize: 30, color: mine !== null && mine >= x.score ? t.warn : t.line }}>★</Text>
+            <Text style={{ fontSize: 30, color: mine !== null && mine >= x.score ? t.accent : t.border }}>★</Text>
           </Pressable>
         ))}
         {mine !== null && <Text style={s.starLabel}>{sentimentLabel(mine)}</Text>}
@@ -150,18 +150,18 @@ function MentionRow({ m, onTakedown }: { m: MentionDetail; onTakedown: () => voi
 }
 
 const st = (t: Theme) => StyleSheet.create({
-  h1: { fontSize: 25, fontWeight: '700', color: t.ink, letterSpacing: -0.5 },
+  h1: { fontSize: 28, fontWeight: '500', color: t.ink, fontFamily: SERIF },
   h2: { fontSize: 14, fontWeight: '600', color: t.inkSoft, marginTop: 26, marginBottom: 9 },
   sub: { color: t.inkSoft, fontSize: 13.5, marginTop: 3, textAlign: 'left' },
   note: { color: t.inkFaint, fontSize: 12, marginTop: 9, lineHeight: 18 },
   empty: { color: t.inkFaint, paddingVertical: 18, textAlign: 'center' },
-  starLabel: { marginLeft: 8, color: t.warn, fontWeight: '700', fontSize: 15 },
+  starLabel: { marginLeft: 8, color: t.accentText, fontWeight: '700', fontSize: 15, fontFamily: SERIF },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: t.surface, borderWidth: 1, borderColor: t.line,
     borderRadius: 12, padding: 13, marginBottom: 8,
   },
-  name: { fontSize: 15, fontWeight: '600', color: t.ink },
+  name: { fontSize: 16, fontWeight: '600', color: t.ink, fontFamily: SERIF },
   meta: { fontSize: 11.5, color: t.inkFaint, fontVariant: ['tabular-nums'] },
   link: { fontSize: 12.5, color: t.inkSoft, textDecorationLine: 'underline' },
   calc: { alignItems: 'flex-end', gap: 1 },

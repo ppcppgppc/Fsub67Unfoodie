@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { db } from '@/lib/db';
-import { useTheme, type Theme } from '@/lib/theme';
+import { useTheme, SERIF, type Theme } from '@/lib/theme';
 import { Banner, Btn } from '@/lib/ui';
 import { mentionSummary, submitTakedown, errMsg } from '@unfoodie/core';
 
@@ -88,7 +88,7 @@ export default function Takedown() {
         <View style={{ gap: 6 }}>
           {ROLES.map((r) => (
             <Pressable key={r} onPress={() => setRole(r)} accessibilityRole="radio" accessibilityState={{ checked: role === r }}
-                       style={[s.role, role === r && { borderColor: t.ink, backgroundColor: t.neutralBg }]}>
+                       style={[s.role, role === r && { borderColor: t.accent, backgroundColor: t.accentSoft }]}>
               <Text style={{ color: role === r ? t.ink : t.inkSoft, fontSize: 14 }}>{r}</Text>
             </Pressable>
           ))}
@@ -107,7 +107,7 @@ export default function Takedown() {
 
 const st = (t: Theme) => StyleSheet.create({
   wrap: { flexGrow: 1, backgroundColor: t.bg, padding: 18, gap: 6 },
-  h1: { fontSize: 26, fontWeight: '700', color: t.ink },
+  h1: { fontSize: 28, fontWeight: '500', color: t.ink, fontFamily: SERIF },
   p: { color: t.inkSoft, fontSize: 13.5, lineHeight: 20 },
   small: { color: t.inkFaint, fontSize: 12 },
   target: { borderWidth: 1, borderColor: t.line, borderRadius: 10, padding: 12, backgroundColor: t.surface, gap: 3, marginTop: 8 },

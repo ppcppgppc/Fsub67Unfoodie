@@ -3,7 +3,7 @@ import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'rea
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
-import { useTheme, signColor, type Theme } from '@/lib/theme';
+import { useTheme, signColor, SERIF, type Theme } from '@/lib/theme';
 import { Banner, Btn, Center } from '@/lib/ui';
 import {
   listFoodies, setStance, tasteMatchFoodies, TIERS, tierInfo, tierError, signed, errMsg,
@@ -84,8 +84,8 @@ export default function Foodies() {
             {TIERS.filter((x) => x.quota !== null).map((x) => {
               const full = used(x.tier) >= x.quota!;
               return (
-                <View key={x.tier} style={[s.quota, full && { backgroundColor: t.warnBg }]}>
-                  <Text style={{ fontSize: 12, color: full ? t.warn : t.inkSoft }}>
+                <View key={x.tier} style={[s.quota, full && { backgroundColor: t.accentSoft }]}>
+                  <Text style={{ fontSize: 12, color: full ? t.accentText : t.inkSoft }}>
                     {x.label} <Text style={{ fontWeight: '700' }}>{used(x.tier)}/{x.quota}</Text>
                   </Text>
                 </View>
@@ -171,7 +171,7 @@ const st = (t: Theme) => StyleSheet.create({
   quota: { backgroundColor: t.neutralBg, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   card: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.line, borderRadius: 12, padding: 13, marginBottom: 8 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  name: { fontSize: 15, fontWeight: '600', color: t.ink },
+  name: { fontSize: 16, fontWeight: '600', color: t.ink, fontFamily: SERIF },
   handle: { fontSize: 12, color: t.inkFaint, marginTop: 2 },
   w: { fontSize: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
   tierLabel: { fontSize: 11.5, color: t.inkSoft, marginTop: 1 },
