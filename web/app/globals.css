@@ -1,0 +1,188 @@
+:root {
+  --bg:        #fbfaf8;
+  --surface:   #ffffff;
+  --line:      #e4e0d9;
+  --ink:       #16150f;
+  --ink-soft:  #6b675d;
+  --ink-faint: #9c988d;
+
+  --good:      #16794a;
+  --good-bg:   #e6f4ec;
+  --bad:       #b3261e;
+  --bad-bg:    #fbeae9;
+  --warn:      #8a5a00;
+  --warn-bg:   #fdf1dc;
+  --neutral-bg:#f1efea;
+
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #121110;
+    --surface:   #1b1a18;
+    --line:      #2f2d29;
+    --ink:       #f2efe8;
+    --ink-soft:  #a5a096;
+    --ink-faint: #706c63;
+
+    --good:      #5fd39b;
+    --good-bg:   #12291f;
+    --bad:       #ff8a80;
+    --bad-bg:    #2e1614;
+    --warn:      #f0be62;
+    --warn-bg:   #2b2013;
+    --neutral-bg:#242320;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+        "PingFang HK", "Noto Sans HK", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ---------- header ---------- */
+
+header.top {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.top-inner {
+  max-width: 860px; margin: 0 auto; padding: 14px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.brand {
+  font-weight: 700; letter-spacing: -0.02em; font-size: 17px;
+}
+.brand span { color: var(--ink-faint); font-weight: 400; }
+nav.top-nav { display: flex; gap: 14px; margin-left: auto; font-size: 14px; }
+nav.top-nav a { color: var(--ink-soft); padding: 4px 0; border-bottom: 2px solid transparent; }
+nav.top-nav a.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ---------- controls ---------- */
+
+.bar { display: flex; align-items: center; gap: 10px; margin: 22px 0 14px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; color: var(--ink-soft);
+  padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.seg button.on { background: var(--ink); color: var(--bg); }
+.muted { color: var(--ink-soft); font-size: 13px; }
+
+select, input {
+  font: inherit; font-size: 14px; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink);
+}
+
+button.primary {
+  font: inherit; font-size: 14px; padding: 9px 16px; cursor: pointer;
+  border: 0; border-radius: 8px; background: var(--ink); color: var(--bg);
+}
+button.ghost {
+  font: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: transparent; color: var(--ink-soft);
+}
+
+/* ---------- restaurant card ---------- */
+
+.card {
+  display: block; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 10px;
+}
+.card-head { display: flex; align-items: baseline; gap: 10px; }
+.card-name { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.card-dist { font-family: var(--mono); font-size: 12px; color: var(--ink-faint); }
+.card-score {
+  margin-left: auto; font-family: var(--mono); font-size: 15px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.card-detail { margin-top: 7px; font-size: 13px; color: var(--ink-soft); }
+
+.badge {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+}
+.tone-good    { background: var(--good-bg);    color: var(--good); }
+.tone-bad     { background: var(--bad-bg);     color: var(--bad); }
+.tone-warn    { background: var(--warn-bg);    color: var(--warn); }
+.tone-neutral { background: var(--neutral-bg); color: var(--ink-soft); }
+
+.t-good { color: var(--good); }
+.t-bad  { color: var(--bad); }
+.t-warn { color: var(--warn); }
+.t-dim  { color: var(--ink-faint); }
+
+/* ---------- quadrant strip ---------- */
+
+.quad { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+.quad i {
+  font-style: normal; font-size: 11.5px; font-family: var(--mono);
+  padding: 2px 7px; border-radius: 5px; background: var(--neutral-bg);
+  color: var(--ink-soft);
+}
+.quad i.pos { background: var(--good-bg); color: var(--good); }
+.quad i.neg { background: var(--bad-bg);  color: var(--bad); }
+
+/* ---------- map ---------- */
+
+#map { height: 62vh; min-height: 380px; border-radius: 12px; border: 1px solid var(--line); }
+.maplibregl-popup-content {
+  font: inherit; font-size: 13px; border-radius: 8px; padding: 10px 12px;
+}
+
+/* ---------- foodie rows ---------- */
+
+.frow {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+}
+.frow .who { min-width: 0; }
+.frow .nm { font-weight: 600; }
+.frow .hd { font-size: 12px; color: var(--ink-faint); font-family: var(--mono); }
+.frow .act { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.wt {
+  font-family: var(--mono); font-weight: 700; font-size: 14px;
+  min-width: 34px; text-align: right; font-variant-numeric: tabular-nums;
+}
+
+.quota { font-size: 12px; color: var(--ink-faint); font-family: var(--mono); }
+
+/* ---------- misc ---------- */
+
+h1 { font-size: 24px; letter-spacing: -0.02em; margin: 26px 0 4px; }
+h2 { font-size: 15px; margin: 28px 0 10px; color: var(--ink-soft); font-weight: 600; }
+.sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 4px; }
+
+.err {
+  background: var(--bad-bg); color: var(--bad); border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; margin: 10px 0;
+}
+.empty { color: var(--ink-faint); font-size: 14px; padding: 26px 0; text-align: center; }
+
+.login { max-width: 340px; margin: 90px auto; }
+.login input { width: 100%; margin-bottom: 9px; }
+.login button { width: 100%; }
+
+.stars { display: inline-flex; gap: 3px; }
+.stars button {
+  border: 0; background: transparent; cursor: pointer; padding: 2px;
+  font-size: 19px; line-height: 1; color: var(--ink-faint);
+}
+.stars button.on { color: var(--warn); }

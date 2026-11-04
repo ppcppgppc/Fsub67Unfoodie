@@ -1,0 +1,36 @@
+# deps
+node_modules/
+.pnp.*
+
+# builds
+.next/
+out/
+dist/
+.expo/
+web-build/
+
+# env —— 真 key 唔好入 repo
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# supabase 本地狀態
+supabase/.branches/
+supabase/.temp/
+
+# ingest
+ingest/__pycache__/
+ingest/.nominatim_cache.json
+__pycache__/
+*.pyc
+
+# macOS / editors
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# 工具
+.claude/
+web/tsconfig.tsbuildinfo

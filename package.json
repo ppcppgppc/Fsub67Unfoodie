@@ -1,0 +1,16 @@
+{
+  "name": "unfoodie",
+  "private": true,
+  "version": "0.0.1",
+  "description": "唔收廣告嘅食評 app。你唔使判斷邊間舖好食 —— 你只需要判斷你信邊個。",
+  "workspaces": [
+    "packages/*",
+    "web",
+    "app"
+  ],
+  "scripts": {
+    "web": "npm run dev -w web",
+    "app": "npm run start -w app",
+    "db:seed": "psql \"$DATABASE_URL\" -f data/seed.sql"
+  }
+}

@@ -1,0 +1,12 @@
+UNFOODIE 嘅資料（ingest/eval/ 嘅測試結果、data/seed.sql、將來匯出嘅
+mapping graph）採用 Community Data License Agreement – Permissive,
+Version 2.0 授權,同 Overture Maps Places theme 一致。
+
+全文:https://cdla.dev/permissive-2-0/
+
+注意:
+  * 爬返嚟嘅內容（post.ingest_source = 'browser_seed'）唔可再分發,
+    由 post.redistributable 呢個 generated column 強制。
+  * 用戶信任等級同餐廳評分永遠唔會出現喺任何匯出入面。
+  * ingest/eval/posts.json 只存 YouTube video ID 同標題;
+    完整描述係創作者嘅文字,請自己跑 ingest/fetch_posts.py 攞。

@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "UNFOODIE",
+    "slug": "unfoodie",
+    "scheme": "unfoodie",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.fsub.unfoodie",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "用嚟搵你附近有邊啲餐廳。位置只會喺你部機度用,唔會上傳。"
+      }
+    },
+    "android": {
+      "package": "app.fsub.unfoodie"
+    },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": false }
+  }
+}
