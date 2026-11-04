@@ -63,6 +63,24 @@ export const SENTIMENT_SCALE = [
   { score: -1.0, label: '伏',   stars: 1 },
 ] as const;
 
+export interface Restaurant {
+  id: string;
+  name: string;
+  name_local: string | null;
+  address: string | null;
+  country_code: string;
+  cuisine: string[] | null;
+}
+
+/** 下架請求表格 —— 只寫得,寫完讀唔返(連提交者都讀唔到) */
+export interface TakedownInput {
+  claimant_name: string;
+  claimant_contact: string;
+  claim: string;
+  mention_id?: string | null;
+  subject_foodie_id?: string | null;
+}
+
 /** nearby_with_score() 嘅一行 */
 export interface ScoredRestaurant {
   restaurant_id: string;

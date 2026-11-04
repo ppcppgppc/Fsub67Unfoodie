@@ -354,8 +354,9 @@ App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模
 - [x] 食評人管理（七檔 + 名額限制）
 - [x] 餐廳評分 + 口味配對建議
 - [x] Expo app code（探索 / 食評人 / 我的），未喺模擬器行過
-- [x] **RLS 實測** — `supabase/tests/rls_check.py`，真 JWT 打 REST API，72 項
+- [x] **RLS 實測** — `supabase/tests/rls_check.py`，真 JWT 打 REST API，75 項
 - [x] 註冊、示範資料標示、production 唔預填帳號
+- [x] **下架請求公開頁面**（`/takedown`，唔使登入）— 每條 mention 都有入口；migration 12 鎖死投訴人只可以填自己嗰幾欄，唔可以倒填 `received_at`
 - [x] **Entity resolution 測試** — 20 篇真實 YouTube 食評（[v1 結果](ingest/eval/RESULTS.md)）
 - [x] **Matcher v2** — 20 篇 in-sample 初步結果，有重要限制，見 [`ingest/eval/RESULTS_v2.md`](ingest/eval/RESULTS_v2.md)
 - [x] **`match_confidence` 拆做兩個數**（migration 09）— 抽取信心唔再假扮配對信心，只有後者乘入評分
@@ -366,7 +367,7 @@ App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模
 
 - [ ] **公開部署**（步驟見下面）
 - [ ] **用未見過嘅 post 重測配對**，由人核對地址
-- [ ] 下架請求嘅公開頁面 —— 上真食評人資料之前一定要有
+- [ ] 下架請求嘅處理後台 —— 而家淨係收得，要喺 Supabase dashboard 睇 `takedown_request`；上真食評人資料之前要有人每日睇
 - [ ] Overture HK + JP 匯入（取代手寫餐廳）
 - [ ] 字幕 ingestion（先確認有幾多店名真係只喺口述）
 - [ ] `ingest/fetch_posts.py` 改用 YouTube Data API（而家係直接讀 watch page）
@@ -382,11 +383,14 @@ Next.js 要接 hosted Supabase，唔可以放 GitHub Pages。全程用瀏覽器�
 
 1. 開一個全新嘅 Supabase project，喺 SQL Editor 貼 [`supabase/deploy_all.sql`](supabase/deploy_all.sql) 跑一次
 2. Vercel 匯入呢個 repo，Root Directory 揀 `web`，加 `NEXT_PUBLIC_SUPABASE_URL` 同 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. 喺 Supabase Authentication → URL Configuration 將 Site URL 改做 Vercel 網址
+3. 喺 Supabase Authentication → URL Configuration 將 Site URL 改做 Vercel 網址，並將同一個網址加入 Redirect URLs（註冊確認信會 redirect 返當前網域）
 
 `deploy_all.sql` 只適用於全新 project。之後改 schema 要加新 migration，再用 `supabase db push`。
 
 改完 schema 或者權限，跑 `supabase/build_deploy_sql.sh` 同 `python3 supabase/tests/rls_check.py`。
+
+`web/next.config.mjs` 已經加咗基本安全 header；CSP 未加，因為 MapLibre 要 `blob:` worker
+同 OpenFreeMap 嘅 host，要逐個列清楚先開得。
 
 ## 授權（待確認）
 
