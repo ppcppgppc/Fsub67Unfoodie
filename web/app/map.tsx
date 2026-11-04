@@ -6,6 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { classify, type ScoredRestaurant } from '@unfoodie/core';
 import type { LatLng } from '@/lib/location';
 import { SIGNAL_SVG } from '@/lib/icons';
+import { isDark, THEME_EVENT } from '@/lib/theme';
 
 // OpenFreeMap:免費 OSM vector tiles,冇 API key、冇用量上限。
 // positron / dark 底圖顏色淡,等 pin 跳出嚟;載入失敗就退返 liberty。
@@ -15,8 +16,6 @@ const STYLES = {
   fallback: 'https://tiles.openfreemap.org/styles/liberty',
 };
 
-const prefersDark = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 
 type Insets = { top: number; right: number; bottom: number; left: number };
 
@@ -74,7 +73,7 @@ export default function Map({
     if (!el.current || map.current) return;
     const m = new maplibregl.Map({
       container: el.current,
-      style: prefersDark() ? STYLES.dark : STYLES.light,
+      style: isDark() ? STYLES.dark : STYLES.light,
       center: [center.lng, center.lat],
       zoom: 12,
       attributionControl: { compact: true },
@@ -96,12 +95,30 @@ export default function Map({
 
     m.on('moveend', () => declutterRef.current());
 
+    // 外觀轉咗(手動或者系統)就換底圖
+    let dark = isDark();
+    const onTheme = () => {
+      const now = isDark();
+      if (now === dark) return;
+      dark = now;
+      fellBack = false;
+      m.setStyle(now ? STYLES.dark : STYLES.light);
+    };
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    window.addEventListener(THEME_EVENT, onTheme);
+    mq.addEventListener('change', onTheme);
+
     // 容器大細變,MapLibre 自己唔知
     const ro = new ResizeObserver(() => m.resize());
     ro.observe(el.current);
 
     map.current = m;
-    return () => { ro.disconnect(); m.remove(); map.current = null; };
+    return () => {
+      ro.disconnect();
+      window.removeEventListener(THEME_EVENT, onTheme);
+      mq.removeEventListener('change', onTheme);
+      m.remove(); map.current = null;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 換位置:冇餐廳嘅時候先飛過去;有餐廳就交俾下面 fit
@@ -143,7 +160,7 @@ export default function Map({
       b.className = `pin ${has ? '' : 'pin-quiet'}`;
       const face = document.createElement('span');
       face.className = `pin-face g-${sig.tone}`;
-      const s = has ? 15 : 10;
+      const s = has ? 14 : 9;
       face.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">${SIGNAL_SVG[sig.kind]}</svg>`;
       b.append(face);
       if (has) {
@@ -154,7 +171,7 @@ export default function Map({
       }
       b.addEventListener('click', (e) => { e.stopPropagation(); onSelectRef.current(r.restaurant_id); });
       // anchor top + offset:令個圓形 pin 嘅中心對正餐廳位置,名喺下面
-      const mk = new maplibregl.Marker({ element: b, anchor: 'top', offset: [0, has ? -15 : -9] })
+      const mk = new maplibregl.Marker({ element: b, anchor: 'top', offset: [0, has ? -14 : -8] })
         .setLngLat([r.lng, r.lat]).addTo(m);
       // MapLibre 會將 aria-label 改做「Map marker」,要喺建立之後先設返
       b.setAttribute('aria-label', `${r.name}:${sig.label}`);
