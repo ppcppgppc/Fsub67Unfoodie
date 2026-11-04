@@ -1,39 +1,40 @@
-/* UNFOODIE — 暖色、安靜、似一本筆記
+/* UNFOODIE — Fsub 黑黃
  *
- * 象牙白底、細邊框、少陰影。標題同店名用 serif,其餘用系統字。
- * 得一個陶土色做重點色;訊號色(推薦／避／值得試)調淡做暖色系,
- * 唔好搶過內容。
+ * 安靜、細邊框、少陰影;標題同店名用 serif,其餘用系統字。
+ * 預設深色(近黑);唯一重點色係黃。黃色做底一定配黑字,
+ * 做字就用 --accent-t(淺色模式係深金,深色模式先係亮黃)。
+ * 訊號色(推薦／避／值得試)跟 Fsub 全線語意:綠／紅／橙。
  */
 
 :root {
-  --bg:       #faf9f5;
-  --side:     #f3f1ea;
+  --bg:       #fbfaf6;
+  --side:     #f2f0e7;
   --surface:  #ffffff;
-  --hover:    rgba(31, 30, 29, .045);
-  --hover-2:  rgba(31, 30, 29, .08);
-  --line:     #e9e6dc;
-  --line-2:   #dcd9ce;
+  --hover:    rgba(18, 18, 17, .045);
+  --hover-2:  rgba(18, 18, 17, .08);
+  --line:     #e7e4da;
+  --line-2:   #d9d6ca;
 
-  --text:     #1f1e1d;
-  --text-2:   #5e5d59;
-  --text-3:   #969489;
+  --text:     #121211;
+  --text-2:   #55534d;
+  --text-3:   #8f8c83;
 
-  --accent:      #c96442;
-  --accent-ink:  #ffffff;
-  --accent-soft: rgba(201, 100, 66, .1);
+  /* 黃:做底色(配黑字)用 --accent;做字用 --accent-t(淺色底上面要深啲先睇得清) */
+  --accent:      #ffcf1a;
+  --accent-ink:  #121211;
+  --accent-t:    #7a5a00;
+  --accent-soft: rgba(255, 207, 26, .22);
 
-  --good:  #5a8050;
-  --bad:   #b94a36;
-  --warn:  #b58223;
+  --good:  #3f8a4c;
+  --bad:   #c8402e;
+  --warn:  #e07a1f;   /* 橙,刻意同黃色重點色分開 */
   --quiet: #a3a197;
-  --good-t: #44683c;
-  --bad-t:  #a33d2b;
-  --warn-t: #8c6418;
+  --good-t: #2f6d3a;
+  --bad-t:  #a8321f;
+  --warn-t: #a8550c;
 
-  --ink-btn:     #1f1e1d;
-  --ink-btn-txt: #faf9f5;
-  --me:   #3b7dd8;
-  --halo: #faf9f5;
+  --me:   #2f6fde;
+  --halo: #fbfaf6;
 
   --serif: "Source Serif 4 Variable", "Songti TC", "Noto Serif TC", "Noto Serif CJK TC", "PMingLiU", Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", sans-serif;
@@ -42,65 +43,63 @@
 
 /* 深色:揀咗「深色」,或者跟系統而系統係深色 */
 :root[data-theme="dark"] {
-    --bg:      #262624;
-    --side:    #1f1e1d;
-    --surface: #30302e;
-    --hover:   rgba(255, 255, 255, .045);
-    --hover-2: rgba(255, 255, 255, .08);
-    --line:    #3a3936;
-    --line-2:  #4a4945;
+    --bg:      #121211;
+    --side:    #0a0a09;
+    --surface: #1b1a18;
+    --hover:   rgba(255, 255, 255, .05);
+    --hover-2: rgba(255, 255, 255, .09);
+    --line:    #292825;
+    --line-2:  #3a3935;
 
-    --text:   #f3f1ea;
-    --text-2: #bab7ad;
-    --text-3: #87857c;
+    --text:   #f6f4ec;
+    --text-2: #b3b0a5;
+    --text-3: #7d7a70;
 
-    --accent:      #d97757;
-    --accent-ink:  #1f1e1d;
-    --accent-soft: rgba(217, 119, 87, .14);
+    --accent:      #ffd21f;
+    --accent-ink:  #121211;
+    --accent-t:    #ffd21f;
+    --accent-soft: rgba(255, 210, 31, .13);
 
-    --good:  #8db37f;
-    --bad:   #e07a64;
-    --warn:  #d9a54a;
-    --quiet: #7d7b73;
-    --good-t: #9cc28d;
-    --bad-t:  #ea8a75;
-    --warn-t: #e3b25e;
+    --good:  #6fcf82;
+    --bad:   #ff6a55;
+    --warn:  #ff9b45;
+    --quiet: #75736b;
+    --good-t: #82d993;
+    --bad-t:  #ff7f6c;
+    --warn-t: #ffab5e;
 
-    --ink-btn:     #f3f1ea;
-    --ink-btn-txt: #1f1e1d;
-    --me:   #6aa2ec;
-    --halo: #262624;
+    --me:   #5b9bff;
+    --halo: #121211;
   }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:      #262624;
-    --side:    #1f1e1d;
-    --surface: #30302e;
-    --hover:   rgba(255, 255, 255, .045);
-    --hover-2: rgba(255, 255, 255, .08);
-    --line:    #3a3936;
-    --line-2:  #4a4945;
+    --bg:      #121211;
+    --side:    #0a0a09;
+    --surface: #1b1a18;
+    --hover:   rgba(255, 255, 255, .05);
+    --hover-2: rgba(255, 255, 255, .09);
+    --line:    #292825;
+    --line-2:  #3a3935;
 
-    --text:   #f3f1ea;
-    --text-2: #bab7ad;
-    --text-3: #87857c;
+    --text:   #f6f4ec;
+    --text-2: #b3b0a5;
+    --text-3: #7d7a70;
 
-    --accent:      #d97757;
-    --accent-ink:  #1f1e1d;
-    --accent-soft: rgba(217, 119, 87, .14);
+    --accent:      #ffd21f;
+    --accent-ink:  #121211;
+    --accent-t:    #ffd21f;
+    --accent-soft: rgba(255, 210, 31, .13);
 
-    --good:  #8db37f;
-    --bad:   #e07a64;
-    --warn:  #d9a54a;
-    --quiet: #7d7b73;
-    --good-t: #9cc28d;
-    --bad-t:  #ea8a75;
-    --warn-t: #e3b25e;
+    --good:  #6fcf82;
+    --bad:   #ff6a55;
+    --warn:  #ff9b45;
+    --quiet: #75736b;
+    --good-t: #82d993;
+    --bad-t:  #ff7f6c;
+    --warn-t: #ffab5e;
 
-    --ink-btn:     #f3f1ea;
-    --ink-btn-txt: #1f1e1d;
-    --me:   #6aa2ec;
-    --halo: #262624;
+    --me:   #5b9bff;
+    --halo: #121211;
   }
 }
 :root[data-theme="light"] { color-scheme: light; }
@@ -114,8 +113,8 @@ body {
   font-variant-numeric: tabular-nums;
 }
 a { color: inherit; text-decoration: none; }
-p a, .hint a, .empty a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+p a, .hint a, .empty a { color: var(--accent-t); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus-visible { outline: 2px solid var(--accent-t); outline-offset: 2px; border-radius: 6px; }
 ::selection { background: var(--accent-soft); }
 
 /* ---------- 骨架:sidebar + 內容 ---------- */
@@ -194,7 +193,7 @@ h2 { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 34px 0 10p
   padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
   transition: background .15s, border-color .15s;
 }
-.btn.primary { background: var(--ink-btn); color: var(--ink-btn-txt); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .btn.primary:hover { opacity: .88; }
 .btn.ghost { background: var(--surface); border-color: var(--line-2); color: var(--text); }
 .btn.ghost:hover { background: var(--hover); }
@@ -202,7 +201,7 @@ h2 { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 34px 0 10p
 .btn.block { width: 100%; }
 .btn:disabled { opacity: .5; cursor: default; }
 
-button.link { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--accent); }
+button.link { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--accent-t); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .chip {
@@ -247,7 +246,7 @@ select:disabled { opacity: .5; }
 
 /* ---------- 開場(未登入 / 未揀位置) ---------- */
 
-.hero-mark { font: 400 46px/1 var(--serif); color: var(--accent); display: block; }
+.hero-mark { font: 400 46px/1 var(--serif); color: var(--accent-t); display: block; }
 .landing, .start {
   max-width: 660px; margin: 0 auto; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 20px;
@@ -291,7 +290,7 @@ select:disabled { opacity: .5; }
 .ex-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
 .title { font: 500 32px/1.15 var(--serif); margin: 0; }
 .meta { margin: 6px 0 0; font-size: 14px; color: var(--text-2); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.tag { font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+.tag { font-size: 11.5px; font-weight: 600; padding: 1px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-t); }
 .ex-tools { display: flex; gap: 8px; align-items: center; }
 
 .ex-body {
@@ -380,7 +379,7 @@ select:disabled { opacity: .5; }
 .quota { padding: 13px 16px; font-size: 12.5px; color: var(--text-2); }
 .quota + .quota { border-left: 1px solid var(--line); }
 .quota b { display: block; font: 500 24px/1.2 var(--serif); color: var(--text); margin-top: 2px; }
-.quota.full b { color: var(--accent); }
+.quota.full b { color: var(--accent-t); }
 
 .links { display: flex; gap: 16px; margin-top: 6px; font-size: 13.5px; }
 .links a { color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2); }
@@ -394,10 +393,10 @@ select:disabled { opacity: .5; }
 
 .stars { display: inline-flex; align-items: center; gap: 2px; padding: 8px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
 .stars button { border: 0; background: transparent; cursor: pointer; padding: 3px; font-size: 26px; line-height: 1; color: var(--line-2); }
-.stars button.on { color: var(--accent); }
+.stars button.on { color: var(--accent); -webkit-text-stroke: 1px var(--accent-t); }
 .stars button:hover { color: var(--text-3); }
 .stars button.on:hover { color: var(--accent); }
-.stars-label { margin-left: 10px; font: 600 16px/1 var(--serif); color: var(--accent); }
+.stars-label { margin-left: 10px; font: 600 16px/1 var(--serif); color: var(--accent-t); }
 
 .policy { margin: 18px 0; padding: 14px 16px; border-radius: 12px; background: var(--side); border: 1px solid var(--line); font-size: 14px; color: var(--text-2); }
 .policy p { margin: 0 0 6px; }
