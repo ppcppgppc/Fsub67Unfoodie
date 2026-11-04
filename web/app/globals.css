@@ -218,15 +218,69 @@ button.link {
 
 /* ---------- map ---------- */
 
+.map-wrap { position: relative; }
 #map {
-  height: 62vh; min-height: 380px; border-radius: var(--radius);
-  border: 1px solid var(--line); background: var(--neutral-bg);
+  height: 64vh; min-height: 380px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--neutral-bg); overflow: hidden;
 }
-.maplibregl-popup-content {
-  font: inherit; font-size: 13px; border-radius: 8px; padding: 10px 12px; color: #16150f;
+
+/* marker:有訊號 = 標籤 pill,冇訊號 = 細點 */
+.mk-pill, .mk-dot { border: 0; padding: 0; cursor: pointer; font: inherit; }
+.mk-pill {
+  font-size: 12px; font-weight: 700; line-height: 1; white-space: nowrap;
+  padding: 5px 9px; border-radius: 999px; color: #fff;
+  box-shadow: 0 0 0 2px var(--surface), 0 2px 6px rgba(0, 0, 0, .3);
+  transition: transform .12s;
 }
-.map-pop { display: flex; flex-direction: column; gap: 2px; }
-.map-pop b { font-size: 14px; }
+.mk-pill:hover, .mk-pill:focus-visible { transform: scale(1.12); z-index: 2; }
+.mk-dot {
+  display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface), 0 1px 3px rgba(0, 0, 0, .3);
+}
+.mk-small { width: 9px; height: 9px; opacity: .8; }
+.mk-good    { background: var(--good); }
+.mk-bad     { background: var(--bad); }
+.mk-warn    { background: var(--warn); }
+.mk-neutral { background: var(--ink-faint); }
+@media (prefers-color-scheme: dark) {
+  .mk-pill { color: #121110; }
+}
+
+.map-legend {
+  position: absolute; left: 10px; bottom: 10px; z-index: 1;
+  list-style: none; margin: 0; padding: 7px 10px;
+  display: flex; flex-wrap: wrap; gap: 4px 12px; max-width: calc(100% - 20px);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line); border-radius: 8px;
+  font-size: 12px; color: var(--ink-soft);
+}
+.map-legend li { display: flex; align-items: center; gap: 5px; }
+.map-legend .mk-dot { width: 9px; height: 9px; box-shadow: none; cursor: default; }
+
+.map-wrap .maplibregl-popup-content {
+  font: inherit; font-size: 13px; border-radius: 10px; padding: 11px 13px;
+  background: var(--surface); color: var(--ink);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .18);
+}
+.map-wrap .maplibregl-popup-anchor-top .maplibregl-popup-tip    { border-bottom-color: var(--surface); }
+.map-wrap .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--surface); }
+.map-wrap .maplibregl-popup-anchor-left .maplibregl-popup-tip   { border-right-color: var(--surface); }
+.map-wrap .maplibregl-popup-anchor-right .maplibregl-popup-tip  { border-left-color: var(--surface); }
+/* zoom 掣跟主題色 */
+.map-wrap .maplibregl-ctrl-group { background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.map-wrap .maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+@media (prefers-color-scheme: dark) {
+  .map-wrap .maplibregl-ctrl-icon { filter: invert(1); }
+}
+.map-pop { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
+.map-pop-head { display: flex; align-items: baseline; gap: 8px; }
+.map-pop-head b { font-size: 15px; }
+.map-pop-dist { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+.map-pop-line { display: flex; align-items: center; gap: 8px; }
+.map-pop-score { font-family: var(--mono); font-weight: 700; margin-left: auto; }
+.map-pop-detail { color: var(--ink-soft); font-size: 12.5px; }
+.map-pop-link { color: var(--ink); font-weight: 600; font-size: 12.5px; text-decoration: underline; text-underline-offset: 2px; }
 
 /* ---------- list rows (食評人 / mention) ---------- */
 

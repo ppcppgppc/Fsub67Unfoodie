@@ -7,20 +7,13 @@ import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
 import { errMsg, signed } from '@/lib/format';
 import {
-  nearbyWithScore, classify, displayScore, formatDistance,
+  nearbyWithScore, classify, displayScore, formatDistance, EXPLORE_SPOTS, EXPLORE_RADIUS_M,
   type ScoredRestaurant,
 } from '@unfoodie/core';
 
 const Map = dynamic(() => import('./map'), { ssr: false });
 
-const SPOTS = [
-  { name: '旺角',   lat: 22.3193, lng: 114.1694 },
-  { name: '中環',   lat: 22.2819, lng: 114.1582 },
-  { name: '深水埗', lat: 22.3303, lng: 114.1622 },
-  { name: '銅鑼灣', lat: 22.2800, lng: 114.1846 },
-  { name: '渋谷',   lat: 35.6595, lng: 139.7005 },
-  { name: '銀座',   lat: 35.6717, lng: 139.7650 },
-];
+const SPOTS = EXPLORE_SPOTS;
 
 const SPOT_KEY = 'unfoodie.spot';
 
@@ -83,7 +76,7 @@ function Nearby({ userId }: { userId: string }) {
     let live = true;
     const s = SPOTS[spot];
     setRows(null); setErr(null);
-    nearbyWithScore(db(), userId, s.lat, s.lng, 3000)
+    nearbyWithScore(db(), userId, s.lat, s.lng, EXPLORE_RADIUS_M)
       .then((r) => live && setRows(r))
       .catch((e) => live && setErr(errMsg(e)));
     return () => { live = false; };

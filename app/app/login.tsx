@@ -1,46 +1,77 @@
-import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/db';
+import { useUser } from '@/lib/user';
 import { useTheme, type Theme } from '@/lib/theme';
+import { Banner, Btn } from '@/lib/ui';
 
 export default function Login() {
   const t = useTheme();
   const s = st(t);
   const router = useRouter();
+  const userId = useUser();
+  const [mode, setMode] = useState<'in' | 'up'>('in');
+  // 示範帳號只可以喺 dev build 預填
   const [email, setEmail] = useState(__DEV__ ? 'demo@unfoodie.local' : '');
   const [pw, setPw] = useState(__DEV__ ? 'demo1234' : '');
   const [err, setErr] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // 登入咗就閂返呢個 modal
+  useEffect(() => { if (userId) router.canGoBack() ? router.back() : router.replace('/'); }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function go() {
-    setBusy(true); setErr(null);
-    const { error } = await db().auth.signInWithPassword({ email, password: pw });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else router.replace('/');
+    setBusy(true); setErr(null); setNote(null);
+    try {
+      if (mode === 'in') {
+        const { error } = await db().auth.signInWithPassword({ email: email.trim(), password: pw });
+        if (error) setErr(error.message);
+        return;
+      }
+      if (pw.length < 8) { setErr('密碼最少要 8 個字'); return; }
+      const { data, error } = await db().auth.signUp({ email: email.trim(), password: pw });
+      if (error) setErr(error.message);
+      else if (!data.session) setNote('已經寄咗確認信，撳信入面條 link 之後返嚟登入。');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <View style={s.wrap}>
-      <Text style={s.p}>你嘅信任名單只屬於你,其他用戶讀唔到。</Text>
+    <KeyboardAvoidingView style={s.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Text style={s.h1}>{mode === 'in' ? '登入' : '註冊'}</Text>
+      <Text style={s.p}>你嘅信任名單只屬於你，其他用戶讀唔到。</Text>
+      <Text style={s.label}>Email</Text>
       <TextInput style={s.input} value={email} onChangeText={setEmail}
-        autoCapitalize="none" keyboardType="email-address" placeholder="email"
-        placeholderTextColor={t.inkFaint} />
+        autoCapitalize="none" autoComplete="email" keyboardType="email-address"
+        textContentType="username" returnKeyType="next" />
+      <Text style={s.label}>密碼</Text>
       <TextInput style={s.input} value={pw} onChangeText={setPw}
-        secureTextEntry placeholder="密碼" placeholderTextColor={t.inkFaint} />
-      {err && <Text style={{ color: t.bad, fontSize: 13 }}>{err}</Text>}
-      <Pressable style={s.btn} onPress={go} disabled={busy}>
-        <Text style={{ color: t.bg, fontWeight: '600' }}>{busy ? '…' : '登入'}</Text>
+        secureTextEntry placeholder="最少 8 個字" placeholderTextColor={t.inkFaint}
+        textContentType={mode === 'in' ? 'password' : 'newPassword'}
+        returnKeyType="go" onSubmitEditing={go} />
+      {err && <Banner kind="err">{err}</Banner>}
+      {note && <Banner kind="ok">{note}</Banner>}
+      <Btn label={busy ? '處理緊…' : mode === 'in' ? '登入' : '註冊'} onPress={go} disabled={busy || !email || !pw}
+           style={{ marginTop: 6 }} />
+      <Pressable onPress={() => { setMode(mode === 'in' ? 'up' : 'in'); setErr(null); setNote(null); }}
+                 style={{ alignSelf: 'center', padding: 10 }} accessibilityRole="button">
+        <Text style={s.toggle}>{mode === 'in' ? '未有帳號？註冊' : '已經有帳號？登入'}</Text>
       </Pressable>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const st = (t: Theme) => StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: t.bg, padding: 20, gap: 10, justifyContent: 'center' },
-  p: { color: t.inkSoft, fontSize: 13, marginBottom: 8, lineHeight: 19 },
-  input: { borderWidth: 1, borderColor: t.line, borderRadius: 9, padding: 12,
-           color: t.ink, backgroundColor: t.surface, fontSize: 15 },
-  btn: { backgroundColor: t.ink, borderRadius: 9, padding: 13, alignItems: 'center', marginTop: 4 },
+  wrap: { flex: 1, backgroundColor: t.bg, padding: 22, gap: 6, justifyContent: 'center' },
+  h1: { fontSize: 26, fontWeight: '700', color: t.ink, letterSpacing: -0.5 },
+  p: { color: t.inkSoft, fontSize: 13.5, marginBottom: 14, lineHeight: 19 },
+  label: { color: t.inkSoft, fontSize: 12.5, marginTop: 6 },
+  input: {
+    borderWidth: 1, borderColor: t.line, borderRadius: 9, padding: 12,
+    color: t.ink, backgroundColor: t.surface, fontSize: 16,
+  },
+  toggle: { color: t.inkSoft, fontSize: 13.5, textDecorationLine: 'underline' },
 });

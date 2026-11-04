@@ -53,7 +53,9 @@ Fsub 系列。
 | `score` | Σ(權重 × 評價 × 配對信心 × 時間衰減) | 總量 |
 | `score_norm` | score ÷ Σ\|權重 × 信心 × 衰減\| | **公平比較同排序（−1 到 +1）** |
 
-`score` 獎勵音量：五十篇 post 嘅名店永遠贏得兩篇嘅新舖。`score_norm` 係加權**平均**，同數量無關 —— 「喺我信嘅人眼中，呢間舖有幾好」。排序用 `score_norm × n ÷ (n + 2)`：正分永遠喺負分上面，樣本太細就向 0 靠。
+`score` 獎勵音量：五十篇 post 嘅名店永遠贏得兩篇嘅新舖。`score_norm` 係加權**平均**，同數量無關 —— 「喺我信嘅人眼中，呢間舖有幾好」。排序用 `score_norm × n_eff ÷ (n_eff + 2)`：正分永遠喺負分上面，樣本太細就向 0 靠。
+
+`n_eff` 係**有效樣本**，唔係篇數：每條訊號按「配對信心 × 時間衰減」計。一篇 5 年前嘅 post 只值約 0.1 篇，所以四篇舊好評唔會再贏一篇上星期嘅好評。只用篇數嘅話，衰減喺 `score_norm` 嘅分子分母差唔多對消，「舊」對排序幾乎冇影響（migration 13）。
 
 **UI 一定要同時顯示四象限嘅 count。** 一個數字冇人信；「3 個你信嘅人讚 · 1 個你唔信嘅人讚」一睇就明點解。解釋得到嘅分數，用戶先會信。
 
@@ -341,7 +343,7 @@ npm run app
 
 （`sudo` 嗰句要你自己行，所以呢一步唔可以自動化。）
 
-App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模擬器上面實際行過**。
+App 嘅 code typecheck 同 iOS Metro bundle 得過；UI 用 react-native-web 加 mock 後端截圖睇過（地圖用替身），但**未喺模擬器或者真機上面實際行過**。
 
 ## 狀態
 
@@ -353,7 +355,7 @@ App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模
 - [x] 餐廳詳情（逐條 mention 攤開「信任等級 × 評價」）
 - [x] 食評人管理（七檔 + 名額限制）
 - [x] 餐廳評分 + 口味配對建議
-- [x] Expo app code（探索 / 食評人 / 我的），未喺模擬器行過
+- [x] Expo app code（探索 / 食評人 / 我的 / 下架），同 web 一致；未喺模擬器行過
 - [x] **RLS 實測** — `supabase/tests/rls_check.py`，真 JWT 打 REST API，75 項
 - [x] 註冊、示範資料標示、production 唔預填帳號
 - [x] **下架請求公開頁面**（`/takedown`，唔使登入）— 每條 mention 都有入口；migration 12 鎖死投訴人只可以填自己嗰幾欄，唔可以倒填 `received_at`
