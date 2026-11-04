@@ -14,16 +14,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#faf9f5' },
-    { media: '(prefers-color-scheme: dark)', color: '#262624' },
-  ],
+  themeColor: '#262624',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // suppressHydrationWarning:data-theme 由下面段 script 喺 React 之前設
-    <html lang="zh-HK" suppressHydrationWarning>
+    // 預設深色;用戶揀過淺色／跟系統,下面段 script 會喺 React 之前改返
+    // suppressHydrationWarning:因為 data-theme 可能已經被 script 改咗
+    <html lang="zh-HK" data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
