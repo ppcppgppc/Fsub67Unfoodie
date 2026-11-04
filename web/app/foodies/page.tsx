@@ -72,6 +72,8 @@ export default function Foodies() {
 
       {err && <div className="err" role="alert">{err}</div>}
 
+      <h2>你嘅名單</h2>
+      <div className="group">
       {rows.map((f) => {
         const st = f.stance?.tier ?? null;
         const w = st ? tierInfo(st).weight : 0;
@@ -117,6 +119,7 @@ export default function Foodies() {
           </div>
         );
       })}
+      </div>
 
       <h2>點解要有名額</h2>
       <p className="muted">

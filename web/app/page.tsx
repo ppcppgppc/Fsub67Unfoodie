@@ -1,21 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
 import { errMsg, signed } from '@/lib/format';
+import { alreadyGranted, locate, LocateError, type LatLng } from '@/lib/location';
+import { IconLocate, SIGNAL_ICON } from '@/lib/icons';
 import {
   nearbyWithScore, classify, displayScore, formatDistance, EXPLORE_SPOTS, EXPLORE_RADIUS_M,
   type ScoredRestaurant,
 } from '@unfoodie/core';
 
-const Map = dynamic(() => import('./map'), { ssr: false });
+const Map = dynamic(() => import('./map'), {
+  ssr: false,
+  loading: () => <div className="map-canvas" />,
+});
 
-const SPOTS = EXPLORE_SPOTS;
+/** 用 GPS 時由近搵起,太少舖就逐步放大 */
+const GPS_RADII = [1000, 2500, 5000];
+const ENOUGH = 6;
+const MODE_KEY = 'unfoodie.where'; // 'gps' 或者地區 index
 
-const SPOT_KEY = 'unfoodie.spot';
+type Place = LatLng & { label: string; kind: 'gps' | 'spot' };
+type Snap = 'peek' | 'half' | 'full';
+
+const km = (m: number) => `${m / 1000}km`;
 
 export default function Explore() {
   const userId = useUser();
@@ -24,150 +35,315 @@ export default function Explore() {
   return <Nearby userId={userId} />;
 }
 
+/* ------------------------------------------------------------------ */
+
 function Landing() {
+  const cells = [
+    { kind: 'recommended', tone: 'good', label: '推薦', who: '你信嘅人', what: '讚' },
+    { kind: 'avoid',       tone: 'bad',  label: '避',   who: '你信嘅人', what: '彈' },
+    { kind: 'suspect',     tone: 'bad',  label: '可疑', who: '你唔信嘅人', what: '讚' },
+    { kind: 'contrarian',  tone: 'warn', label: '反而值得試', who: '你唔信嘅人', what: '彈' },
+  ] as const;
   return (
-    <>
-      <h1 className="hero">你唔使判斷邊間舖好食<br />—— 你只需要判斷你信邊個。</h1>
-      <p className="sub">
-        畀每個食評人一個信任等級，由 +10 到 −10，上下兩極有名額。
-        每間舖用你自己嘅名單計分，同大眾評分冇關。
+    <div className="landing">
+      <p className="eyebrow">唔收廣告嘅食評</p>
+      <h1 className="hero">你唔使判斷邊間舖好食。<br />你只需要判斷你信邊個。</h1>
+      <p className="lede">
+        畀每個食評人一個信任等級，由 +10 到 −10。每間舖用你自己嘅名單計分 ——
+        同大眾評分冇關，亦冇人可以俾錢買位。
       </p>
-
-      <div className="quad-grid" role="table" aria-label="信任 × 評價">
-        <div className="qg-cell qg-head" role="columnheader" />
-        <div className="qg-cell qg-head" role="columnheader">佢讚</div>
-        <div className="qg-cell qg-head" role="columnheader">佢彈</div>
-
-        <div className="qg-cell qg-head" role="rowheader">你信嘅人</div>
-        <div className="qg-cell tone-good"><b>推薦</b><span>信得過嘅人推薦</span></div>
-        <div className="qg-cell tone-bad"><b>避</b><span>信得過嘅人彈</span></div>
-
-        <div className="qg-cell qg-head" role="rowheader">你唔信嘅人</div>
-        <div className="qg-cell tone-bad"><b>可疑</b><span>淨係得佢哋讚 → 收錢味</span></div>
-        <div className="qg-cell tone-warn"><b>反而值得試</b><span>冇人俾錢 KOL 去彈嘢</span></div>
+      <div className="tiles">
+        {cells.map((c) => {
+          const Icon = SIGNAL_ICON[c.kind];
+          return (
+            <div key={c.kind} className={`tile ${c.kind === 'suspect' ? 'tile-key' : ''}`}>
+              <span className={`glyph g-${c.tone}`}><Icon size={18} /></span>
+              <b>{c.label}</b>
+              <span>{c.who}{c.what}</span>
+            </div>
+          );
+        })}
       </div>
-
-      <p className="muted">
-        左下嗰格係成個 app 嘅賣點：「呢間舖淨係得你唔信嗰班人讚過」。
-        冇任何平台會話你聽，因為佢哋嘅收入都嚟自嗰班人。
-      </p>
-
-      <p style={{ marginTop: 24 }}>
-        <Link href="/login" className="btn primary">登入或者註冊</Link>
-      </p>
-    </>
+      <p className="muted">「可疑」係其他平台永遠唔會話你聽嘅嘢 —— 因為佢哋嘅收入都嚟自嗰班人。</p>
+      <Link href="/login" className="btn primary">開始</Link>
+    </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+
+function useIsPhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 760px)');
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
+function snapPx(s: Snap): number {
+  const h = window.innerHeight;
+  return s === 'peek' ? 150 : s === 'half' ? Math.round(h * 0.42) : h - 92;
 }
 
 function Nearby({ userId }: { userId: string }) {
-  const [spot, setSpot] = useState(0);
-  const [view, setView] = useState<'list' | 'map'>('list');
+  const phone = useIsPhone();
+  const [place, setPlace] = useState<Place | null>(null);
+  const [radius, setRadius] = useState(EXPLORE_RADIUS_M);
   const [rows, setRows] = useState<ScoredRestaurant[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
 
+  // 手機版底部玻璃 sheet:peek / half / full 三個高度,可以拖
+  const [snap, setSnap] = useState<Snap>('half');
+  const [dragH, setDragH] = useState<number | null>(null);
+  const [vh, setVh] = useState(800);
   useEffect(() => {
-    try {
-      const saved = Number(localStorage.getItem(SPOT_KEY));
-      if (saved > 0 && saved < SPOTS.length) setSpot(saved);
-    } catch { /* 私密模式等:用預設 */ }
+    const on = () => setVh(window.innerHeight);
+    on(); window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
   }, []);
+  const sheetH = dragH ?? (typeof window === 'undefined' ? 360 : snapPx(snap));
+  const drag = useRef<{ y: number; h: number } | null>(null);
 
-  useEffect(() => {
-    let live = true;
-    const s = SPOTS[spot];
-    setRows(null); setErr(null);
-    nearbyWithScore(db(), userId, s.lat, s.lng, EXPLORE_RADIUS_M)
-      .then((r) => live && setRows(r))
-      .catch((e) => live && setErr(errMsg(e)));
-    return () => { live = false; };
-  }, [userId, spot]);
-
-  function pick(i: number) {
-    setSpot(i);
-    try { localStorage.setItem(SPOT_KEY, String(i)); } catch { /* 冇所謂 */ }
+  function onGrabDown(e: React.PointerEvent) {
+    drag.current = { y: e.clientY, h: sheetH };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onGrabMove(e: React.PointerEvent) {
+    if (!drag.current) return;
+    const h = drag.current.h + (drag.current.y - e.clientY);
+    setDragH(Math.max(snapPx('peek'), Math.min(snapPx('full'), h)));
+  }
+  function onGrabUp(e: React.PointerEvent) {
+    if (!drag.current) return;
+    const moved = Math.abs(e.clientY - drag.current.y);
+    const h = dragH ?? drag.current.h;
+    drag.current = null;
+    setDragH(null);
+    if (moved < 6) { // 撳一下 = 轉高度
+      setSnap(snap === 'peek' ? 'half' : snap === 'half' ? 'full' : 'peek');
+      return;
+    }
+    const best = (['peek', 'half', 'full'] as Snap[])
+      .reduce((a, b) => (Math.abs(snapPx(b) - h) < Math.abs(snapPx(a) - h) ? b : a));
+    setSnap(best);
   }
 
-  const s = SPOTS[spot];
-  const withSignal = (rows ?? []).filter((r) => r.n_signal > 0);
-  const noSignal   = (rows ?? []).filter((r) => r.n_signal === 0);
+  const fetchFor = useCallback(async (p: Place) => {
+    setLoading(true); setErr(null); setSelected(null);
+    try {
+      if (p.kind === 'spot') {
+        setRadius(EXPLORE_RADIUS_M);
+        setRows(await nearbyWithScore(db(), userId, p.lat, p.lng, EXPLORE_RADIUS_M));
+        return;
+      }
+      let got: ScoredRestaurant[] = [];
+      for (const r of GPS_RADII) {
+        got = await nearbyWithScore(db(), userId, p.lat, p.lng, r);
+        setRadius(r);
+        if (got.length >= ENOUGH) break;
+      }
+      setRows(got);
+    } catch (e) {
+      setErr(`載入唔到附近餐廳：${errMsg(e)}`);
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  const goGps = useCallback(async () => {
+    setLocating(true); setErr(null);
+    try {
+      const p: Place = { ...(await locate()), label: '你附近', kind: 'gps' };
+      setPlace(p);
+      setSnap('half');
+      try { localStorage.setItem(MODE_KEY, 'gps'); } catch { /* 冇所謂 */ }
+      await fetchFor(p);
+    } catch (e) {
+      setErr(e instanceof LocateError ? e.message : errMsg(e));
+    } finally {
+      setLocating(false);
+    }
+  }, [fetchFor]);
+
+  function goSpot(i: number) {
+    const s = EXPLORE_SPOTS[i];
+    const p: Place = { lat: s.lat, lng: s.lng, label: s.name, kind: 'spot' };
+    setPlace(p);
+    setSnap('half');
+    try { localStorage.setItem(MODE_KEY, String(i)); } catch { /* 冇所謂 */ }
+    fetchFor(p);
+  }
+
+  // 上次揀咗地區就用返;上次用 GPS 而權限仲喺度就靜靜雞再攞,唔會彈窗
+  useEffect(() => {
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(MODE_KEY); } catch { /* 私密模式 */ }
+    if (saved === 'gps') {
+      alreadyGranted().then((ok) => { if (ok) goGps(); });
+    } else if (saved !== null && Number(saved) >= 0 && Number(saved) < EXPLORE_SPOTS.length) {
+      goSpot(Number(saved));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 撳地圖 pin → sheet 至少拉到一半,清單捲去嗰行
+  function pickFromMap(id: string | null) {
+    setSelected(id);
+    if (!id) return;
+    if (phone && snap === 'peek') setSnap('half');
+    requestAnimationFrame(() =>
+      document.getElementById(`row-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  }
+
+  const signal = (rows ?? []).filter((r) => r.n_signal > 0);
+  const quiet  = (rows ?? []).filter((r) => r.n_signal === 0);
+  const spotIndex = place?.kind === 'spot' ? EXPLORE_SPOTS.findIndex((s) => s.name === place.label) : -1;
+  const insets = phone
+    ? { top: 76, right: 40, bottom: (place ? snapPx(snap) : 0) + 24, left: 40 }
+    : { top: 90, right: 70, bottom: 50, left: 420 };
+  void vh; // vh 變咗要 re-render,等 snapPx 用返新高度
 
   return (
-    <>
-      <h1>探索</h1>
-      <p className="sub">排序用你自己嘅信任名單計，同大眾評分冇關。</p>
-
-      <div className="bar">
-        <select value={spot} onChange={(e) => pick(Number(e.target.value))} aria-label="地區">
-          {SPOTS.map((x, i) => <option key={x.name} value={i}>{x.name}</option>)}
-        </select>
-        <div className="seg" role="group" aria-label="顯示方式">
-          <button className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}>清單</button>
-          <button className={view === 'map' ? 'on' : ''} aria-pressed={view === 'map'} onClick={() => setView('map')}>地圖</button>
-        </div>
-        <span className="muted">
-          {err ? '' : rows ? `${withSignal.length} 間有訊號 · ${noSignal.length} 間未知` : '載入中…'}
-        </span>
+    <div className="ex" style={{ '--sheet-h': `${place ? sheetH : 0}px` } as React.CSSProperties}>
+      <div className="ex-map">
+        <Map
+          rows={rows ?? []}
+          center={place ?? EXPLORE_SPOTS[0]}
+          me={place?.kind === 'gps' ? place : null}
+          selected={selected ?? hover}
+          onSelect={pickFromMap}
+          insets={insets}
+        />
       </div>
 
-      {err && <div className="err">載入唔到附近餐廳：{err}</div>}
-
-      {view === 'map' ? (
-        <Map rows={rows ?? []} lat={s.lat} lng={s.lng} />
-      ) : !rows ? (
-        !err && <p className="empty">載入中…</p>
-      ) : rows.length === 0 ? (
-        <p className="empty">呢個範圍內未有餐廳資料</p>
-      ) : (
-        <>
-          {withSignal.length === 0 && (
-            <p className="hint">
-              呢度啲舖你名單入面未有人講過。去<Link href="/foodies">食評人</Link>揀幾個你信（或者唔信）嘅人，排序先會有意思。
-            </p>
-          )}
-          {withSignal.map((r) => <Card key={r.restaurant_id} r={r} />)}
-          {noSignal.length > 0 && (
-            <>
-              <h2>你名單入面冇人講過</h2>
-              {noSignal.map((r) => <Card key={r.restaurant_id} r={r} />)}
-            </>
-          )}
-        </>
+      {place && (
+        <button className="fab glass" onClick={goGps} disabled={locating}
+                aria-label={place.kind === 'gps' ? '重新定位' : '用我嘅位置'}
+                data-on={place.kind === 'gps' || undefined}>
+          <IconLocate size={20} />
+        </button>
       )}
-    </>
+
+      {!place ? (
+        <div className="perm-wrap">
+          <div className="perm glass" role="dialog" aria-labelledby="perm-h">
+            <span className="perm-icon"><IconLocate size={26} /></span>
+            <h2 id="perm-h">睇吓你附近有咩食</h2>
+            <p>用你嘅位置，搵附近你信嘅人讚過嘅舖 —— 同埋邊間淨係得你唔信嘅人讚。</p>
+            <button className="btn primary block" onClick={goGps} disabled={locating}>
+              {locating ? '搵緊你嘅位置…' : '用我嘅位置'}
+            </button>
+            {err && <p className="perm-err" role="alert">{err}</p>}
+            <p className="perm-or">或者揀個地區</p>
+            <div className="chips">
+              {EXPLORE_SPOTS.map((s, i) => (
+                <button key={s.name} className="chip" onClick={() => goSpot(i)}>{s.name}</button>
+              ))}
+            </div>
+            <p className="perm-fine">位置會捨入到約 100 米先用嚟查附近餐廳，唔會記錄落你個 account。</p>
+          </div>
+        </div>
+      ) : (
+        <section
+          className={`sheet glass ${dragH !== null ? 'dragging' : ''}`}
+          aria-label="附近餐廳"
+          style={phone ? { height: sheetH } : undefined}
+        >
+          <div className="sheet-grab" onPointerDown={onGrabDown} onPointerMove={onGrabMove}
+               onPointerUp={onGrabUp} onPointerCancel={onGrabUp}>
+            <span className="grabber" aria-hidden="true" />
+            <div className="sheet-head">
+              <div>
+                <h1 className="sheet-title">{place.label}</h1>
+                <p className="sheet-sub">
+                  {loading || !rows ? '搵緊…' : `${km(radius)} 內 · ${signal.length} 間有訊號`}
+                  <span className="demo-tag">示範資料</span>
+                </p>
+              </div>
+              <select className="menu" value={spotIndex} onChange={(e) => goSpot(Number(e.target.value))}
+                      onPointerDown={(e) => e.stopPropagation()} aria-label="揀地區">
+                <option value={-1} disabled>地區</option>
+                {EXPLORE_SPOTS.map((s, i) => <option key={s.name} value={i}>{s.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="sheet-body">
+            {err && <div className="err" role="alert">{err}</div>}
+            {loading || !rows ? (
+              <p className="empty">搵緊附近嘅舖…</p>
+            ) : rows.length === 0 ? (
+              <div className="empty">
+                <p>{km(radius)} 內未有資料。示範版淨係有香港同東京幾區嘅虛構餐廳。</p>
+                <div className="chips center">
+                  {EXPLORE_SPOTS.map((s, i) => <button key={s.name} className="chip" onClick={() => goSpot(i)}>{s.name}</button>)}
+                </div>
+              </div>
+            ) : (
+              <>
+                {signal.length === 0 && (
+                  <p className="hint">
+                    附近啲舖你名單入面未有人講過。去<Link href="/foodies">食評人</Link>揀幾個你信（或者唔信）嘅人。
+                  </p>
+                )}
+                {signal.length > 0 && (
+                  <ul className="list">
+                    {signal.map((r) => (
+                      <Row key={r.restaurant_id} r={r} on={selected === r.restaurant_id} onHover={setHover} />
+                    ))}
+                  </ul>
+                )}
+                {quiet.length > 0 && (
+                  <>
+                    <h3 className="list-h">你名單入面冇人講過</h3>
+                    <ul className="list">
+                      {quiet.map((r) => (
+                        <Row key={r.restaurant_id} r={r} on={selected === r.restaurant_id} onHover={setHover} />
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+      )}
+    </div>
   );
 }
 
-function Card({ r }: { r: ScoredRestaurant }) {
+function Row({ r, on, onHover }: { r: ScoredRestaurant; on: boolean; onHover: (id: string | null) => void }) {
   const sig = classify(r);
   const norm = displayScore(r);
-
+  const Icon = SIGNAL_ICON[sig.kind];
   return (
-    <Link href={`/r/${r.restaurant_id}`} className="card">
-      <div className="card-head">
-        <span className="card-name">{r.name}</span>
-        <span className="card-dist">{formatDistance(r.distance_m)}</span>
-        <span
-          className={`card-score t-${sig.tone === 'neutral' ? 'dim' : sig.tone}`}
-          title={norm === null ? '少過 3 個訊號，唔顯示分數' : '你名單入面嘅加權平均(−1 至 +1)'}
-        >
-          {norm !== null ? signed(norm, 2) : '—'}
+    <li id={`row-${r.restaurant_id}`} className={`row ${on ? 'on' : ''}`}
+        onMouseEnter={() => onHover(r.restaurant_id)} onMouseLeave={() => onHover(null)}>
+      <Link href={`/r/${r.restaurant_id}`} className="row-link"
+            onFocus={() => onHover(r.restaurant_id)} onBlur={() => onHover(null)}>
+        <span className={`glyph g-${sig.tone}`}><Icon size={17} /></span>
+        <span className="row-main">
+          <span className="row-name">{r.name}</span>
+          <span className="row-sub">
+            <b className={`t-${sig.tone}`}>{sig.label}</b> · {sig.detail}
+          </span>
         </span>
-      </div>
-
-      <div className="card-detail">
-        <span className={`badge tone-${sig.tone}`}>{sig.label}</span>
-        <span>{sig.detail}</span>
-      </div>
-
-      {r.n_signal > 0 && (
-        <div className="quad">
-          {r.trusted_pos    > 0 && <i className="pos">信 · 讚 {r.trusted_pos}</i>}
-          {r.trusted_neg    > 0 && <i className="neg">信 · 彈 {r.trusted_neg}</i>}
-          {r.distrusted_pos > 0 && <i className="neg">唔信 · 讚 {r.distrusted_pos}</i>}
-          {r.distrusted_neg > 0 && <i className="pos">唔信 · 彈 {r.distrusted_neg}</i>}
-          {r.unknown_pos    > 0 && <i>未評 · 讚 {r.unknown_pos}</i>}
-        </div>
-      )}
-    </Link>
+        <span className="row-end">
+          <span className={`row-score t-${norm === null ? 'dim' : sig.tone}`}
+                title={norm === null ? '少過 3 個訊號，唔顯示分數' : '你名單入面嘅加權平均(−1 至 +1)'}>
+            {norm !== null ? signed(norm, 2) : '—'}
+          </span>
+          <span className="row-dist">{formatDistance(r.distance_m)}</span>
+        </span>
+      </Link>
+    </li>
   );
 }
