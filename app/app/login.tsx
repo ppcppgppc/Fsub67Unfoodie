@@ -8,8 +8,8 @@ export default function Login() {
   const t = useTheme();
   const s = st(t);
   const router = useRouter();
-  const [email, setEmail] = useState('demo@unfoodie.local');
-  const [pw, setPw] = useState('demo1234');
+  const [email, setEmail] = useState(__DEV__ ? 'demo@unfoodie.local' : '');
+  const [pw, setPw] = useState(__DEV__ ? 'demo1234' : '');
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -23,7 +23,7 @@ export default function Login() {
 
   return (
     <View style={s.wrap}>
-      <Text style={s.p}>你嘅信任名單只屬於你 —— 由 Postgres RLS 鎖死。</Text>
+      <Text style={s.p}>你嘅信任名單只屬於你,其他用戶讀唔到。</Text>
       <TextInput style={s.input} value={email} onChangeText={setEmail}
         autoCapitalize="none" keyboardType="email-address" placeholder="email"
         placeholderTextColor={t.inkFaint} />

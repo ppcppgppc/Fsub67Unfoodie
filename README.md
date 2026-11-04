@@ -50,10 +50,10 @@ Fsub 系列。
 
 | | 計法 | 用途 |
 |---|---|---|
-| `score` | Σ(權重 × 評價 × 配對信心 × 時間衰減) | 排序 |
-| `score_norm` | score ÷ Σ\|權重 × 信心 × 衰減\| | **公平比較（−1 到 +1）** |
+| `score` | Σ(權重 × 評價 × 配對信心 × 時間衰減) | 總量 |
+| `score_norm` | score ÷ Σ\|權重 × 信心 × 衰減\| | **公平比較同排序（−1 到 +1）** |
 
-`score` 獎勵音量：五十篇 post 嘅名店永遠贏得兩篇嘅新舖。`score_norm` 係加權**平均**，同數量無關 —— 「喺我信嘅人眼中，呢間舖有幾好」。有三個以上訊號就用 `score_norm` 排，否則跌返 `score`（樣本太細嘅平均數唔可信）。
+`score` 獎勵音量：五十篇 post 嘅名店永遠贏得兩篇嘅新舖。`score_norm` 係加權**平均**，同數量無關 —— 「喺我信嘅人眼中，呢間舖有幾好」。排序用 `score_norm × n ÷ (n + 2)`：正分永遠喺負分上面，樣本太細就向 0 靠。
 
 **UI 一定要同時顯示四象限嘅 count。** 一個數字冇人信；「3 個你信嘅人讚 · 1 個你唔信嘅人讚」一睇就明點解。解釋得到嘅分數，用戶先會信。
 
@@ -169,6 +169,8 @@ sim_shrunk = sim × n / (n + λ)      λ = 8
 
 ## 架構
 
+以下係目標架構。Overture 仲未匯入，而家用手寫示範資料。
+
 ```
 POI 資料      Overture Maps (Places) → 自建 PostGIS
 地圖顯示      react-native-maps
@@ -226,8 +228,8 @@ Web           Next.js
 
 **你嘅餐廳評分預設私人。**
 
-- `user_rating.is_public` 預設 `false`。唔 opt-in 就唔會攞去同任何人配對
-- opt-in 之後公開嘅只係評分本身，唔包括 note
+- 其他用戶讀唔到你嘅評分。用戶之間配對未做，所以 `is_public` 而家冇任何效果
+- 將來做嗰陣只會經函數出聚合結果，唔會開放原始行，note 永遠唔出街
 
 ### 一條唔可以過嘅線
 
@@ -241,7 +243,7 @@ RLS 唔係 nice-to-have，佢係以上所有承諾嘅結構性保證。冇咗佢
 
 ## 資料治理
 
-`mention`（邊個 foodie 講過邊間舖）呢個圖譜係眾包維護嘅。**實測自動配對只有 HK 45% / JP 60%**（見 [`ingest/eval/RESULTS_v2.md`](ingest/eval/RESULTS_v2.md)），即係一半要人手補 —— 人手覆核佇列係主線功能，唔係 nice-to-have。
+`mention`（邊個 foodie 講過邊間舖）呢個圖譜係眾包維護嘅。20 篇樣本嘅初步結果係約一半配得到（細樣本、未獨立驗證，見 [`ingest/eval/RESULTS_v2.md`](ingest/eval/RESULTS_v2.md)），所以人手覆核佇列係主線功能，唔係 nice-to-have。
 
 **設計前提：食評人有直接經濟誘因去篡改呢個圖譜** —— 刪走自己啲收錢 post、加返啲假嘅正面 edge。呢個係系統嘅主要攻擊面。
 
@@ -317,8 +319,8 @@ npm install && npm run web
 
 ### 手機版（要先裝兩樣嘢）
 
-Expo dev server 喺 macOS 上面**冇 watchman 就會死**（Metro 逐個 directory 開
-`fs.watch`，直接撞 `EMFILE: too many open files`，調 `ulimit` 冇用）。
+喺開發機上面 Metro dev server 啟動時撞 `EMFILE: too many open files`，調 `ulimit`
+同收窄 `watchFolders` 都冇用。根本原因未確定，watchman 係最可能嘅解法，但未驗證。
 原生 build 又要 CocoaPods，而 CocoaPods 要 Ruby ≥ 3.1（系統 Ruby 係 2.6）。
 
 兩樣都由 Homebrew 解決，但 Homebrew 自己要 Xcode Command Line Tools：
@@ -339,8 +341,7 @@ npm run app
 
 （`sudo` 嗰句要你自己行，所以呢一步唔可以自動化。）
 
-`ingest/eval` 同 schema 全部驗證過；app 嘅 code 亦都 typecheck 同
-Metro bundle 得過（898 modules），但**未喺模擬器上面實際行過**。
+App 嘅 code typecheck 同 Metro bundle 得過（898 modules），但**未喺模擬器上面實際行過**。
 
 ## 狀態
 
@@ -352,25 +353,45 @@ Metro bundle 得過（898 modules），但**未喺模擬器上面實際行過**�
 - [x] 餐廳詳情（逐條 mention 攤開「信任等級 × 評價」）
 - [x] 食評人管理（七檔 + 名額限制）
 - [x] 餐廳評分 + 口味配對建議
-- [x] Expo app（探索 / 食評人 / 我的）
+- [x] Expo app code（探索 / 食評人 / 我的），未喺模擬器行過
+- [x] **RLS 實測** — `supabase/tests/rls_check.py`，真 JWT 打 REST API，72 項
+- [x] 註冊、示範資料標示、production 唔預填帳號
 - [x] **Entity resolution 測試** — 20 篇真實 YouTube 食評（[v1 結果](ingest/eval/RESULTS.md)）
-- [x] **Matcher v2** — 端到端 **HK 45% / JP 60%**（v1 42%/48%），見 [`ingest/eval/RESULTS_v2.md`](ingest/eval/RESULTS_v2.md)
+- [x] **Matcher v2** — 20 篇 in-sample 初步結果，有重要限制，見 [`ingest/eval/RESULTS_v2.md`](ingest/eval/RESULTS_v2.md)
 - [x] **`match_confidence` 拆做兩個數**（migration 09）— 抽取信心唔再假扮配對信心，只有後者乘入評分
 
-> **測試推翻咗兩個原本假設。** 日本唔係難嗰邊 —— 日文店名係高辨識度專有名詞，東京 OSM 覆蓋又好；香港細舖名多數係通名（`水記`、`寶樹堂`），POI 覆蓋又差。而且樽頸唔喺抽取（79 條抽得出）而喺配對（v1 得 39 條配到）。所以 **MVP 唔使縮返做香港獨市**，而人手覆核佇列由 nice-to-have 升做主線功能。
->
-> Matcher v2 之後香港仍然只有 45% —— 嗰個缺口唔係演算法問題係**資料問題**，細舖喺 OSM 根本冇。要郁嗰個數，下一步係 Overture 匯入，唔係再 tune 演算法。
+> **初步跡象（細樣本，未獨立驗證）：** 呢批樣本入面日本配對唔差過香港，樽頸喺配對多過抽取。喺用未見過嘅資料重測之前，唔好當定論。
 
 未做，按重要性排：
 
-- [ ] **RLS 實測** — policy 寫咗但未用兩個真用戶驗證過隔離。呢個係「你嘅名單唔會離開你個 account」嘅唯一實現，唔可以靠睇 code 就當佢啱。
-- [ ] 字幕 ingestion — 20 篇入面有 5 篇（25%）店名只喺片入面口述
-- [ ] Overture HK + JP 匯入（取代手寫餐廳，覆蓋闊過 OSM）
+- [ ] **公開部署**（步驟見下面）
+- [ ] **用未見過嘅 post 重測配對**，由人核對地址
+- [ ] 下架請求嘅公開頁面 —— 上真食評人資料之前一定要有
+- [ ] Overture HK + JP 匯入（取代手寫餐廳）
+- [ ] 字幕 ingestion（先確認有幾多店名真係只喺口述）
+- [ ] `ingest/fetch_posts.py` 改用 YouTube Data API（而家係直接讀 watch page）
 - [ ] Share Extension（最重要嘅入口）
 - [ ] 抽取 pipeline（Claude API）
 - [ ] 手動 seed 頭 50 個食評人 —— **按餐廳覆蓋面同有冇 YouTube 揀人，唔係按 follower 數**
 - [ ] 行程 view（日本場景）
 - [ ] 用戶之間配對（要先有足夠評分密度先有意思）
+
+## 部署
+
+Next.js 要接 hosted Supabase，唔可以放 GitHub Pages。
+
+```bash
+supabase login
+```
+
+```bash
+supabase link --project-ref <project-ref> && supabase db push --include-seed
+```
+
+Vercel 匯入呢個 repo，Root Directory 揀 `web`，加 `NEXT_PUBLIC_SUPABASE_URL` 同
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`。之後喺 Supabase Auth 將 Site URL 改做 Vercel 網址。
+
+改完 schema 或者權限，先喺本機跑 `python3 supabase/tests/rls_check.py`。
 
 ## 授權（待確認）
 

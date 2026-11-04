@@ -1,8 +1,12 @@
-UNFOODIE 嘅資料（ingest/eval/ 嘅測試結果、data/seed.sql、將來匯出嘅
-mapping graph）採用 Community Data License Agreement – Permissive,
+UNFOODIE 嘅資料（data/seed.sql、將來匯出嘅 mapping graph）採用 Community Data License Agreement – Permissive,
 Version 2.0 授權,同 Overture Maps Places theme 一致。
 
 全文:https://cdla.dev/permissive-2-0/
+
+例外:
+  * ingest/eval/matched.json 同 matched_v2.json 含 Nominatim 查返嚟嘅名稱同座標,
+    屬 OpenStreetMap 衍生資料:© OpenStreetMap contributors,ODbL 1.0
+    (https://opendatacommons.org/licenses/odbl/)。唔適用 CDLA。
 
 注意:
   * 爬返嚟嘅內容（post.ingest_source = 'browser_seed'）唔可再分發,

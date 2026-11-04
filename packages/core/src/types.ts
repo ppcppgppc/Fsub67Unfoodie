@@ -44,6 +44,16 @@ export const TIERS: {
 
 export const tierInfo = (t: StanceTier) => TIERS.find((x) => x.tier === t)!;
 
+/** DB 名額 trigger 嘅訊息帶住內部 enum 名,顯示前譯返中文。 */
+export function tierError(e: unknown): string {
+  let msg = (e as { message?: string })?.message ?? String(e);
+  // 由長到短換:否則 super_distrust 會先中 trust
+  for (const t of [...TIERS].sort((a, b) => b.tier.length - a.tier.length)) {
+    msg = msg.replace(t.tier, t.label);
+  }
+  return msg;
+}
+
 /** 五檔評價尺 —— 用戶評分同 LLM 抽取共用,唔同尺就冇得計相關性。 */
 export const SENTIMENT_SCALE = [
   { score:  1.0, label: '勁正', stars: 5 },

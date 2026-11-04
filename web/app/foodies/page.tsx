@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { db, useUser } from '@/lib/db';
 import {
-  listFoodies, setStance, tasteMatchFoodies, TIERS, tierInfo,
+  listFoodies, setStance, tasteMatchFoodies, TIERS, tierInfo, tierError,
   type Foodie, type StanceTier, type TasteMatch,
 } from '@unfoodie/core';
 
@@ -38,7 +38,7 @@ export default function Foodies() {
       await setStance(db(), userId!, foodieId, tier === '' ? null : (tier as StanceTier));
       await load();
     } catch (e: any) {
-      setErr(e.message ?? String(e));
+      setErr(tierError(e));
     }
   }
 

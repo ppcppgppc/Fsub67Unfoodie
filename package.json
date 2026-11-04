@@ -2,7 +2,7 @@
   "name": "unfoodie",
   "private": true,
   "version": "0.0.1",
-  "description": "唔收廣告嘅食評 app。你唔使判斷邊間舖好食 —— 你只需要判斷你信邊個。",
+  "description": "\u5514\u6536\u5ee3\u544a\u5605\u98df\u8a55 app\u3002\u4f60\u5514\u4f7f\u5224\u65b7\u908a\u9593\u8216\u597d\u98df \u2014\u2014 \u4f60\u53ea\u9700\u8981\u5224\u65b7\u4f60\u4fe1\u908a\u500b\u3002",
   "workspaces": [
     "packages/*",
     "web",
@@ -12,5 +12,9 @@
     "web": "npm run dev -w web",
     "app": "npm run start -w app",
     "db:seed": "psql \"$DATABASE_URL\" -f data/seed.sql"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

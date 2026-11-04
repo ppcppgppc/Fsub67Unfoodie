@@ -5,7 +5,7 @@ import {
 import { db, useUser } from '@/lib/db';
 import { useTheme, type Theme } from '@/lib/theme';
 import {
-  listFoodies, setStance, tasteMatchFoodies, TIERS, tierInfo,
+  listFoodies, setStance, tasteMatchFoodies, TIERS, tierInfo, tierError,
   type Foodie, type StanceTier, type TasteMatch,
 } from '@unfoodie/core';
 
@@ -41,7 +41,7 @@ export default function Foodies() {
       await load();
     } catch (e: any) {
       // 名額滿嘅 check_violation 會喺呢度出現 —— 直接俾用戶睇原文
-      Alert.alert('入唔到', e.message ?? String(e));
+      Alert.alert('入唔到', tierError(e));
     }
   }
 

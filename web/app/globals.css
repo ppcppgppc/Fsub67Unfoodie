@@ -186,3 +186,26 @@ h2 { font-size: 15px; margin: 28px 0 10px; color: var(--ink-soft); font-weight: 
   font-size: 19px; line-height: 1; color: var(--ink-faint);
 }
 .stars button.on { color: var(--warn); }
+
+/* ---------- public site ---------- */
+
+.demo-banner {
+  background: var(--warn-bg); color: var(--warn);
+  font-size: 12.5px; text-align: center; padding: 6px 16px;
+}
+.foot {
+  max-width: 860px; margin: 0 auto; padding: 18px 20px 34px;
+  font-size: 12.5px; color: var(--ink-faint); border-top: 1px solid var(--line);
+}
+.foot a { text-decoration: underline; }
+.how { margin-top: 22px; }
+.how p { margin: 0 0 8px; color: var(--ink-soft); font-size: 14.5px; }
+.how b { color: var(--ink); font-weight: 600; }
+.ok {
+  background: var(--good-bg); color: var(--good); border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; margin: 10px 0;
+}
+button.link {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; color: var(--ink-soft); text-decoration: underline;
+}

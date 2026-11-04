@@ -1,68 +1,535 @@
-{"note":"由 ingest/prompt.md v1 抽取,輸入 = 標題 + 描述(冇字幕)","posts":[
-{"id":1,"market":"HK","area":"尖沙咀","disclosed_ad":false,"mentions":[
- {"name":"豪華小食","conf":1.0,"sent":0.5},{"name":"ChaTraMue","conf":1.0,"sent":0.5},
- {"name":"MOROPAIN","conf":1.0,"sent":0.5},{"name":"曲奇四重奏","conf":1.0,"sent":0.5},
- {"name":"曲奇童話","conf":1.0,"sent":0.5},{"name":"餓媽家姐","conf":1.0,"sent":0.5},
- {"name":"Owl's Choux","conf":1.0,"sent":0.5}]},
-{"id":2,"market":"HK","area":"尖沙咀","disclosed_ad":false,"mentions":[
- {"name":"Park Cafe 百樂酒店","conf":1.0,"sent":0.5}]},
-{"id":3,"market":"HK","area":"銅鑼灣","disclosed_ad":true,"mentions":[
- {"name":"PLAYT 柏寧酒店","conf":1.0,"sent":1.0}]},
-{"id":4,"market":"HK","area":"屯門","disclosed_ad":false,"mentions":[
- {"name":"Taco go","conf":1.0,"sent":1.0},{"name":"夜嗜野","conf":1.0,"sent":1.0},
- {"name":"香港街頭小食風味","conf":0.7,"sent":0.5}]},
-{"id":5,"market":"HK","area":null,"disclosed_ad":false,"mentions":[]},
-{"id":6,"market":"HK","area":"長沙灣","disclosed_ad":false,"mentions":[
- {"name":"永隆正宗潮州滷水","conf":1.0,"sent":1.0}]},
-{"id":7,"market":"HK","area":"中環","disclosed_ad":false,"mentions":[
- {"name":"ORO Manhattan-Italian Restaurant","conf":1.0,"sent":0.5}]},
-{"id":8,"market":"HK","area":null,"disclosed_ad":false,"mentions":[
- {"name":"水記","conf":0.8,"sent":0.5},{"name":"Mammy Pancake","conf":1.0,"sent":0.5},
- {"name":"Soft Thunder","conf":0.9,"sent":0.5},{"name":"坤記煲仔小菜","conf":1.0,"sent":0.5},
- {"name":"金華冰廳","conf":0.8,"sent":0.5},{"name":"寶樹堂","conf":0.9,"sent":0.5},
- {"name":"Hashtag B","conf":0.9,"sent":0.5},{"name":"炯記燒肉","conf":0.9,"sent":0.5},
- {"name":"龍點心","conf":0.9,"sent":0.5},{"name":"明華餅家","conf":1.0,"sent":0.5},
- {"name":"生記清湯牛腩麵家","conf":1.0,"sent":0.5},{"name":"橋底辣蟹","conf":1.0,"sent":0.5},
- {"name":"源記甜品專家","conf":0.8,"sent":0.5}]},
-{"id":9,"market":"HK","area":null,"disclosed_ad":false,"mentions":[]},
-{"id":10,"market":"HK","area":"中環","disclosed_ad":false,"mentions":[
- {"name":"康樂大廈 food court","conf":0.4,"sent":0.5}]},
-{"id":11,"market":"HK","area":"油尖旺","disclosed_ad":false,"mentions":[
- {"name":"文記車仔麵","conf":0.9,"sent":0.5},{"name":"金華冰廳","conf":0.7,"sent":0.5},
- {"name":"康年餐廳","conf":0.6,"sent":0.5}]},
-{"id":12,"market":"HK","area":"灣仔","disclosed_ad":false,"mentions":[]},
-{"id":13,"market":"JP","area":"浅草","disclosed_ad":false,"mentions":[
- {"name":"浅草うなな","conf":1.0,"sent":0.5},{"name":"きびだんご あづま","conf":1.0,"sent":0.5},
- {"name":"せんから屋","conf":1.0,"sent":0.5},{"name":"よ兵衛","conf":1.0,"sent":0.5},
- {"name":"蛸たこ×ころも兄弟","conf":0.9,"sent":0.5},{"name":"壽々喜園","conf":1.0,"sent":1.0},
- {"name":"純喫茶マウンテン","conf":1.0,"sent":0.5},{"name":"和菓子 楓","conf":0.8,"sent":0.5},
- {"name":"浅草もんじゃころっけ","conf":0.9,"sent":0.5},{"name":"鳴門鯛焼本舗","conf":1.0,"sent":0.5},
- {"name":"亀十","conf":1.0,"sent":1.0},{"name":"浅草シルクプリン","conf":1.0,"sent":0.5},
- {"name":"もちにゃん焼き","conf":0.9,"sent":0.5},{"name":"千葉屋","conf":1.0,"sent":1.0},
- {"name":"かりんとう小桜","conf":1.0,"sent":1.0}]},
-{"id":14,"market":"JP","area":"原宿","disclosed_ad":true,"mentions":[]},
-{"id":15,"market":"JP","area":"銀座","disclosed_ad":false,"mentions":[
- {"name":"Alchemist Kyobashi","conf":1.0,"sent":0.5},{"name":"MAISON CREPE","conf":1.0,"sent":0.5},
- {"name":"DOLCETAKUBO GINZA","conf":1.0,"sent":0.5},{"name":"ピエール・エルメ・パリ 丸の内","conf":1.0,"sent":0.5},
- {"name":"231 PLACE","conf":0.9,"sent":0.5}]},
-{"id":16,"market":"JP","area":"築地","disclosed_ad":false,"mentions":[
- {"name":"とんぼや","conf":1.0,"sent":0.5},{"name":"丸豊","conf":1.0,"sent":0.5},
- {"name":"黒銀","conf":1.0,"sent":0.5},{"name":"丸武","conf":1.0,"sent":0.5},
- {"name":"山長","conf":1.0,"sent":0.5},{"name":"中華 幸軒","conf":1.0,"sent":0.5},
- {"name":"斎藤水産","conf":1.0,"sent":0.5},{"name":"築地うなぎ食堂","conf":1.0,"sent":0.5}]},
-{"id":17,"market":"JP","area":"浅草","disclosed_ad":false,"mentions":[
- {"name":"浅草きびだんご あずま","conf":1.0,"sent":0.5},{"name":"菊水堂","conf":1.0,"sent":0.5},
- {"name":"おいもやさん興伸","conf":1.0,"sent":0.5},{"name":"浅草九重","conf":1.0,"sent":0.5},
- {"name":"木村屋本店","conf":1.0,"sent":0.5},{"name":"梅園","conf":1.0,"sent":0.5},
- {"name":"浅草メンチ","conf":1.0,"sent":0.5},{"name":"安心や","conf":0.9,"sent":0.5},
- {"name":"壱ノ屋","conf":0.9,"sent":0.5},{"name":"花月堂","conf":1.0,"sent":0.5},
- {"name":"浅草製作所","conf":0.9,"sent":0.5}]},
-{"id":18,"market":"JP","area":"築地","disclosed_ad":false,"mentions":[]},
-{"id":19,"market":"JP","area":"東京駅","disclosed_ad":false,"mentions":[
- {"name":"BAKE CHEESE TART","conf":1.0,"sent":0.5},{"name":"Mr.CHEESECAKE","conf":1.0,"sent":0.5},
- {"name":"Be! FRUITSSANDWICH","conf":1.0,"sent":0.5},{"name":"SOBAP","conf":0.9,"sent":0.5},
- {"name":"BURDIGALA TOKYO","conf":1.0,"sent":0.5},{"name":"DEAN & DELUCA","conf":0.7,"sent":0.5},
- {"name":"and TOKYO","conf":0.9,"sent":0.5}]},
-{"id":20,"market":"JP","area":"東京","disclosed_ad":false,"mentions":[
- {"name":"バシャコーヒー","conf":1.0,"sent":0.5},{"name":"チャターボックス","conf":1.0,"sent":0.5}]}
-]}
+{
+ "note": "由 ingest/prompt.md v1 抽取,輸入 = 標題 + 描述頭 1100 字(冇字幕)。限制見 RESULTS_v2.md",
+ "posts": [
+  {
+   "id": 1,
+   "market": "HK",
+   "area": "尖沙咀",
+   "mentions": [
+    {
+     "name": "豪華小食",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "ChaTraMue",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "MOROPAIN",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "曲奇四重奏",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "曲奇童話",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "餓媽家姐",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "Owl's Choux",
+     "conf": 1.0,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "market": "HK",
+   "area": "尖沙咀",
+   "mentions": [
+    {
+     "name": "Park Cafe 百樂酒店",
+     "conf": 1.0,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "market": "HK",
+   "area": "銅鑼灣",
+   "mentions": [
+    {
+     "name": "PLAYT 柏寧酒店",
+     "conf": 1.0,
+     "sent": 1.0
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "market": "HK",
+   "area": "屯門",
+   "mentions": [
+    {
+     "name": "Taco go",
+     "conf": 1.0,
+     "sent": 1.0
+    },
+    {
+     "name": "夜嗜野",
+     "conf": 1.0,
+     "sent": 1.0
+    },
+    {
+     "name": "香港街頭小食風味",
+     "conf": 0.7,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "market": "HK",
+   "area": null,
+   "mentions": []
+  },
+  {
+   "id": 6,
+   "market": "HK",
+   "area": "長沙灣",
+   "mentions": [
+    {
+     "name": "永隆正宗潮州滷水",
+     "conf": 1.0,
+     "sent": 1.0
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "market": "HK",
+   "area": "中環",
+   "mentions": [
+    {
+     "name": "ORO Manhattan-Italian Restaurant",
+     "conf": 1.0,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "market": "HK",
+   "area": null,
+   "mentions": [
+    {
+     "name": "水記",
+     "conf": 0.8,
+     "sent": 0.5
+    },
+    {
+     "name": "Mammy Pancake",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "Soft Thunder",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "坤記煲仔小菜",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "金華冰廳",
+     "conf": 0.8,
+     "sent": 0.5
+    },
+    {
+     "name": "寶樹堂",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "Hashtag B",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "炯記燒肉",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "龍點心",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "明華餅家",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "生記清湯牛腩麵家",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "橋底辣蟹",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "源記甜品專家",
+     "conf": 0.8,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "market": "HK",
+   "area": null,
+   "mentions": []
+  },
+  {
+   "id": 10,
+   "market": "HK",
+   "area": "中環",
+   "mentions": [
+    {
+     "name": "康樂大廈 food court",
+     "conf": 0.4,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "market": "HK",
+   "area": "油尖旺",
+   "mentions": [
+    {
+     "name": "文記車仔麵",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "金華冰廳",
+     "conf": 0.7,
+     "sent": 0.5
+    },
+    {
+     "name": "康年餐廳",
+     "conf": 0.6,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "market": "HK",
+   "area": "灣仔",
+   "mentions": []
+  },
+  {
+   "id": 13,
+   "market": "JP",
+   "area": "浅草",
+   "mentions": [
+    {
+     "name": "浅草うなな",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "きびだんご あづま",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "せんから屋",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "よ兵衛",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "蛸たこ×ころも兄弟",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "壽々喜園",
+     "conf": 1.0,
+     "sent": 1.0
+    },
+    {
+     "name": "純喫茶マウンテン",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "和菓子 楓",
+     "conf": 0.8,
+     "sent": 0.5
+    },
+    {
+     "name": "浅草もんじゃころっけ",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "鳴門鯛焼本舗",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "亀十",
+     "conf": 1.0,
+     "sent": 1.0
+    },
+    {
+     "name": "浅草シルクプリン",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "もちにゃん焼き",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "千葉屋",
+     "conf": 1.0,
+     "sent": 1.0
+    },
+    {
+     "name": "かりんとう小桜",
+     "conf": 1.0,
+     "sent": 1.0
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "market": "JP",
+   "area": "原宿",
+   "mentions": []
+  },
+  {
+   "id": 15,
+   "market": "JP",
+   "area": "銀座",
+   "mentions": [
+    {
+     "name": "Alchemist Kyobashi",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "MAISON CREPE",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "DOLCETAKUBO GINZA",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "ピエール・エルメ・パリ 丸の内",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "231 PLACE",
+     "conf": 0.9,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 16,
+   "market": "JP",
+   "area": "築地",
+   "mentions": [
+    {
+     "name": "とんぼや",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "丸豊",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "黒銀",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "丸武",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "山長",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "中華 幸軒",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "斎藤水産",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "築地うなぎ食堂",
+     "conf": 1.0,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 17,
+   "market": "JP",
+   "area": "浅草",
+   "mentions": [
+    {
+     "name": "浅草きびだんご あずま",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "菊水堂",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "おいもやさん興伸",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "浅草九重",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "木村屋本店",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "梅園",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "浅草メンチ",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "安心や",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "壱ノ屋",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "花月堂",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "浅草製作所",
+     "conf": 0.9,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 18,
+   "market": "JP",
+   "area": "築地",
+   "mentions": []
+  },
+  {
+   "id": 19,
+   "market": "JP",
+   "area": "東京駅",
+   "mentions": [
+    {
+     "name": "BAKE CHEESE TART",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "Mr.CHEESECAKE",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "Be! FRUITSSANDWICH",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "SOBAP",
+     "conf": 0.9,
+     "sent": 0.5
+    },
+    {
+     "name": "BURDIGALA TOKYO",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "DEAN & DELUCA",
+     "conf": 0.7,
+     "sent": 0.5
+    },
+    {
+     "name": "and TOKYO",
+     "conf": 0.9,
+     "sent": 0.5
+    }
+   ]
+  },
+  {
+   "id": 20,
+   "market": "JP",
+   "area": "東京",
+   "mentions": [
+    {
+     "name": "バシャコーヒー",
+     "conf": 1.0,
+     "sent": 0.5
+    },
+    {
+     "name": "チャターボックス",
+     "conf": 1.0,
+     "sent": 0.5
+    }
+   ]
+  }
+ ]
+}

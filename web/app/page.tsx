@@ -42,7 +42,12 @@ export default function Explore() {
       <>
         <h1>UNFOODIE</h1>
         <p className="sub">你唔使判斷邊間舖好食 —— 你只需要判斷你信邊個。</p>
-        <p style={{ marginTop: 24 }}><Link href="/login"><button className="primary">登入睇你嘅名單</button></Link></p>
+        <div className="how">
+          <p><b>畀每個食評人一個信任等級</b>,由 +10 到 −10,上下兩極有名額。</p>
+          <p><b>每間舖用你自己嘅名單計分</b>,同大眾評分冇關。</p>
+          <p><b>「淨係得你唔信嘅人讚過」</b>會直接標出嚟。</p>
+        </div>
+        <p style={{ marginTop: 24 }}><Link href="/login"><button className="primary">登入或者註冊</button></Link></p>
       </>
     );
   }
