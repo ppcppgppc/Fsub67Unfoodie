@@ -1,28 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
 import { errMsg, signed } from '@/lib/format';
+import { alreadyGranted, locate, LocateError, type LatLng } from '@/lib/location';
+import { IconLocate, SIGNAL_ICON } from '@/lib/icons';
 import {
-  nearbyWithScore, classify, displayScore, formatDistance,
+  nearbyWithScore, classify, displayScore, formatDistance, EXPLORE_SPOTS, EXPLORE_RADIUS_M,
   type ScoredRestaurant,
 } from '@unfoodie/core';
 
-const Map = dynamic(() => import('./map'), { ssr: false });
+const Map = dynamic(() => import('./map'), {
+  ssr: false,
+  loading: () => <div className="map-canvas" />,
+});
 
-const SPOTS = [
-  { name: '旺角',   lat: 22.3193, lng: 114.1694 },
-  { name: '中環',   lat: 22.2819, lng: 114.1582 },
-  { name: '深水埗', lat: 22.3303, lng: 114.1622 },
-  { name: '銅鑼灣', lat: 22.2800, lng: 114.1846 },
-  { name: '渋谷',   lat: 35.6595, lng: 139.7005 },
-  { name: '銀座',   lat: 35.6717, lng: 139.7650 },
-];
+/** 用 GPS 時由近搵起,太少舖就逐步放大 */
+const GPS_RADII = [1000, 2500, 5000];
+const ENOUGH = 6;
+const MODE_KEY = 'unfoodie.where'; // 'gps' 或者地區 index
 
-const SPOT_KEY = 'unfoodie.spot';
+type Place = LatLng & { label: string; kind: 'gps' | 'spot' };
+
+const km = (m: number) => `${m / 1000}km`;
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 5 ? '夜晚好' : h < 11 ? '早晨' : h < 14 ? '午安' : h < 18 ? '下晝好' : '晚上好';
+}
 
 export default function Explore() {
   const userId = useUser();
@@ -31,150 +39,249 @@ export default function Explore() {
   return <Nearby userId={userId} />;
 }
 
+/* ------------------------------------------------------------------ */
+
 function Landing() {
+  const cells = [
+    { kind: 'recommended', tone: 'good', label: '推薦', desc: '你信嘅人讚' },
+    { kind: 'avoid',       tone: 'bad',  label: '避',   desc: '你信嘅人彈' },
+    { kind: 'suspect',     tone: 'bad',  label: '可疑', desc: '淨係得你唔信嘅人讚' },
+    { kind: 'contrarian',  tone: 'warn', label: '反而值得試', desc: '你唔信嘅人彈' },
+  ] as const;
   return (
-    <>
-      <h1 className="hero">你唔使判斷邊間舖好食<br />—— 你只需要判斷你信邊個。</h1>
-      <p className="sub">
-        畀每個食評人一個信任等級，由 +10 到 −10，上下兩極有名額。
-        每間舖用你自己嘅名單計分，同大眾評分冇關。
+    <div className="landing">
+      <span className="hero-mark" aria-hidden="true">±</span>
+      <h1 className="display">你唔使判斷邊間舖好食。<br />你只需要判斷你信邊個。</h1>
+      <p className="lede">
+        畀每個食評人一個信任等級，由 +10 到 −10。每間舖用你自己嘅名單計分 ——
+        唔收廣告，亦冇人可以俾錢買位。
       </p>
-
-      <div className="quad-grid" role="table" aria-label="信任 × 評價">
-        <div className="qg-cell qg-head" role="columnheader" />
-        <div className="qg-cell qg-head" role="columnheader">佢讚</div>
-        <div className="qg-cell qg-head" role="columnheader">佢彈</div>
-
-        <div className="qg-cell qg-head" role="rowheader">你信嘅人</div>
-        <div className="qg-cell tone-good"><b>推薦</b><span>信得過嘅人推薦</span></div>
-        <div className="qg-cell tone-bad"><b>避</b><span>信得過嘅人彈</span></div>
-
-        <div className="qg-cell qg-head" role="rowheader">你唔信嘅人</div>
-        <div className="qg-cell tone-bad"><b>可疑</b><span>淨係得佢哋讚 → 收錢味</span></div>
-        <div className="qg-cell tone-warn"><b>反而值得試</b><span>冇人俾錢 KOL 去彈嘢</span></div>
+      <div className="cards">
+        {cells.map((c) => {
+          const Icon = SIGNAL_ICON[c.kind];
+          return (
+            <div key={c.kind} className="card-s">
+              <span className={`dot d-${c.tone}`}><Icon size={14} /></span>
+              <b>{c.label}</b>
+              <span>{c.desc}</span>
+            </div>
+          );
+        })}
       </div>
-
-      <p className="muted">
-        左下嗰格係成個 app 嘅賣點：「呢間舖淨係得你唔信嗰班人讚過」。
-        冇任何平台會話你聽，因為佢哋嘅收入都嚟自嗰班人。
-      </p>
-
-      <p style={{ marginTop: 24 }}>
-        <Link href="/login" className="btn primary">登入或者註冊</Link>
-      </p>
-    </>
+      <p className="muted">「可疑」係其他平台永遠唔會話你聽嘅嘢 —— 因為佢哋嘅收入都嚟自嗰班人。</p>
+      <Link href="/login" className="btn primary">開始使用</Link>
+    </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
 
 function Nearby({ userId }: { userId: string }) {
-  const [spot, setSpot] = useState(0);
-  const [view, setView] = useState<'list' | 'map'>('list');
+  const [place, setPlace] = useState<Place | null>(null);
+  const [radius, setRadius] = useState(EXPLORE_RADIUS_M);
   const [rows, setRows] = useState<ScoredRestaurant[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+  const [hello, setHello] = useState('你好');
+  useEffect(() => setHello(greeting()), []);
 
-  useEffect(() => {
+  const fetchFor = useCallback(async (p: Place) => {
+    setLoading(true); setErr(null); setSelected(null);
     try {
-      const saved = Number(localStorage.getItem(SPOT_KEY));
-      if (saved > 0 && saved < SPOTS.length) setSpot(saved);
-    } catch { /* 私密模式等:用預設 */ }
-  }, []);
+      if (p.kind === 'spot') {
+        setRadius(EXPLORE_RADIUS_M);
+        setRows(await nearbyWithScore(db(), userId, p.lat, p.lng, EXPLORE_RADIUS_M));
+        return;
+      }
+      let got: ScoredRestaurant[] = [];
+      for (const r of GPS_RADII) {
+        got = await nearbyWithScore(db(), userId, p.lat, p.lng, r);
+        setRadius(r);
+        if (got.length >= ENOUGH) break;
+      }
+      setRows(got);
+    } catch (e) {
+      setErr(`載入唔到附近餐廳：${errMsg(e)}`);
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
-  useEffect(() => {
-    let live = true;
-    const s = SPOTS[spot];
-    setRows(null); setErr(null);
-    nearbyWithScore(db(), userId, s.lat, s.lng, 3000)
-      .then((r) => live && setRows(r))
-      .catch((e) => live && setErr(errMsg(e)));
-    return () => { live = false; };
-  }, [userId, spot]);
+  const goGps = useCallback(async () => {
+    setLocating(true); setErr(null);
+    try {
+      const p: Place = { ...(await locate()), label: '你附近', kind: 'gps' };
+      setPlace(p);
+      try { localStorage.setItem(MODE_KEY, 'gps'); } catch { /* 冇所謂 */ }
+      await fetchFor(p);
+    } catch (e) {
+      setErr(e instanceof LocateError ? e.message : errMsg(e));
+    } finally {
+      setLocating(false);
+    }
+  }, [fetchFor]);
 
-  function pick(i: number) {
-    setSpot(i);
-    try { localStorage.setItem(SPOT_KEY, String(i)); } catch { /* 冇所謂 */ }
+  function goSpot(i: number) {
+    const s = EXPLORE_SPOTS[i];
+    const p: Place = { lat: s.lat, lng: s.lng, label: s.name, kind: 'spot' };
+    setPlace(p);
+    try { localStorage.setItem(MODE_KEY, String(i)); } catch { /* 冇所謂 */ }
+    fetchFor(p);
   }
 
-  const s = SPOTS[spot];
-  const withSignal = (rows ?? []).filter((r) => r.n_signal > 0);
-  const noSignal   = (rows ?? []).filter((r) => r.n_signal === 0);
+  // 上次揀咗地區就用返;上次用 GPS 而權限仲喺度就靜靜雞再攞,唔會彈窗
+  useEffect(() => {
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(MODE_KEY); } catch { /* 私密模式 */ }
+    if (saved === 'gps') {
+      alreadyGranted().then((ok) => { if (ok) goGps(); });
+    } else if (saved !== null && Number(saved) >= 0 && Number(saved) < EXPLORE_SPOTS.length) {
+      goSpot(Number(saved));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 撳地圖 pin → 清單捲去嗰行
+  function pickFromMap(id: string | null) {
+    setSelected(id);
+    if (id) requestAnimationFrame(() =>
+      document.getElementById(`row-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  }
+
+  /* ---------- 未揀位置:似對話開場 ---------- */
+  if (!place) {
+    return (
+      <div className="start">
+        <span className="hero-mark" aria-hidden="true">±</span>
+        <h1 className="display">{hello}，今日想食咩？</h1>
+        <div className="composer">
+          <button className="composer-main" onClick={goGps} disabled={locating}>
+            <span className="composer-text">
+              {locating ? '搵緊你嘅位置…' : '用我而家嘅位置，搵附近你信嘅人讚過嘅舖'}
+            </span>
+          </button>
+          <button className="composer-go" onClick={goGps} disabled={locating} aria-label="用我嘅位置">
+            <IconLocate size={18} />
+          </button>
+        </div>
+        {err && <p className="start-err" role="alert">{err}</p>}
+        <div className="chips">
+          {EXPLORE_SPOTS.map((s, i) => (
+            <button key={s.name} className="chip" onClick={() => goSpot(i)}>{s.name}</button>
+          ))}
+        </div>
+        <p className="fine">位置會捨入到約 100 米先用嚟查附近餐廳，唔會記錄落你個 account。示範版資料全部虛構。</p>
+      </div>
+    );
+  }
+
+  /* ---------- 結果:清單 + 地圖卡 ---------- */
+  const signal = (rows ?? []).filter((r) => r.n_signal > 0);
+  const quiet  = (rows ?? []).filter((r) => r.n_signal === 0);
+  const spotIndex = place.kind === 'spot' ? EXPLORE_SPOTS.findIndex((s) => s.name === place.label) : -1;
 
   return (
-    <>
-      <h1>探索</h1>
-      <p className="sub">排序用你自己嘅信任名單計，同大眾評分冇關。</p>
-
-      <div className="bar">
-        <select value={spot} onChange={(e) => pick(Number(e.target.value))} aria-label="地區">
-          {SPOTS.map((x, i) => <option key={x.name} value={i}>{x.name}</option>)}
-        </select>
-        <div className="seg" role="group" aria-label="顯示方式">
-          <button className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}>清單</button>
-          <button className={view === 'map' ? 'on' : ''} aria-pressed={view === 'map'} onClick={() => setView('map')}>地圖</button>
+    <div className="ex">
+      <header className="ex-head">
+        <div>
+          <h1 className="title">{place.label}</h1>
+          <p className="meta">
+            {loading || !rows ? '搵緊…' : `${km(radius)} 內 · ${signal.length} 間有訊號`}
+            <span className="tag">示範資料</span>
+          </p>
         </div>
-        <span className="muted">
-          {err ? '' : rows ? `${withSignal.length} 間有訊號 · ${noSignal.length} 間未知` : '載入中…'}
-        </span>
-      </div>
+        <div className="ex-tools">
+          <button className="btn ghost sm" onClick={goGps} disabled={locating}>
+            <IconLocate size={14} />{locating ? '搵緊…' : place.kind === 'gps' ? '重新定位' : '用我嘅位置'}
+          </button>
+          <select value={spotIndex} onChange={(e) => goSpot(Number(e.target.value))} aria-label="揀地區">
+            <option value={-1} disabled>地區</option>
+            {EXPLORE_SPOTS.map((s, i) => <option key={s.name} value={i}>{s.name}</option>)}
+          </select>
+        </div>
+      </header>
 
-      {err && <div className="err">載入唔到附近餐廳：{err}</div>}
+      {err && <div className="err" role="alert">{err}</div>}
 
-      {view === 'map' ? (
-        <Map rows={rows ?? []} lat={s.lat} lng={s.lng} />
-      ) : !rows ? (
-        !err && <p className="empty">載入中…</p>
-      ) : rows.length === 0 ? (
-        <p className="empty">呢個範圍內未有餐廳資料</p>
-      ) : (
-        <>
-          {withSignal.length === 0 && (
-            <p className="hint">
-              呢度啲舖你名單入面未有人講過。去<Link href="/foodies">食評人</Link>揀幾個你信（或者唔信）嘅人，排序先會有意思。
-            </p>
-          )}
-          {withSignal.map((r) => <Card key={r.restaurant_id} r={r} />)}
-          {noSignal.length > 0 && (
+      <div className="ex-body">
+        <div className="map-card">
+          <Map
+            rows={rows ?? []}
+            center={place}
+            me={place.kind === 'gps' ? place : null}
+            selected={selected ?? hover}
+            onSelect={pickFromMap}
+            insets={{ top: 10, right: 10, bottom: 10, left: 10 }}
+          />
+        </div>
+
+        <section className="ex-list" aria-label="附近餐廳">
+          {loading || !rows ? (
+            <p className="empty">搵緊附近嘅舖…</p>
+          ) : rows.length === 0 ? (
+            <div className="empty">
+              <p>{km(radius)} 內未有資料。示範版淨係有香港同東京幾區嘅虛構餐廳。</p>
+              <div className="chips center">
+                {EXPLORE_SPOTS.map((s, i) => <button key={s.name} className="chip" onClick={() => goSpot(i)}>{s.name}</button>)}
+              </div>
+            </div>
+          ) : (
             <>
-              <h2>你名單入面冇人講過</h2>
-              {noSignal.map((r) => <Card key={r.restaurant_id} r={r} />)}
+              {signal.length === 0 && (
+                <p className="hint">
+                  附近啲舖你名單入面未有人講過。去<Link href="/foodies">食評人</Link>揀幾個你信（或者唔信）嘅人。
+                </p>
+              )}
+              {signal.length > 0 && (
+                <ul className="list">
+                  {signal.map((r) => (
+                    <Row key={r.restaurant_id} r={r} on={selected === r.restaurant_id} onHover={setHover} />
+                  ))}
+                </ul>
+              )}
+              {quiet.length > 0 && (
+                <>
+                  <h3 className="list-h">你名單入面冇人講過</h3>
+                  <ul className="list">
+                    {quiet.map((r) => (
+                      <Row key={r.restaurant_id} r={r} on={selected === r.restaurant_id} onHover={setHover} />
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           )}
-        </>
-      )}
-    </>
+        </section>
+      </div>
+    </div>
   );
 }
 
-function Card({ r }: { r: ScoredRestaurant }) {
+function Row({ r, on, onHover }: { r: ScoredRestaurant; on: boolean; onHover: (id: string | null) => void }) {
   const sig = classify(r);
   const norm = displayScore(r);
-
+  const Icon = SIGNAL_ICON[sig.kind];
   return (
-    <Link href={`/r/${r.restaurant_id}`} className="card">
-      <div className="card-head">
-        <span className="card-name">{r.name}</span>
-        <span className="card-dist">{formatDistance(r.distance_m)}</span>
-        <span
-          className={`card-score t-${sig.tone === 'neutral' ? 'dim' : sig.tone}`}
-          title={norm === null ? '少過 3 個訊號，唔顯示分數' : '你名單入面嘅加權平均(−1 至 +1)'}
-        >
+    <li id={`row-${r.restaurant_id}`} className={`row ${on ? 'on' : ''}`}
+        onMouseEnter={() => onHover(r.restaurant_id)} onMouseLeave={() => onHover(null)}>
+      <Link href={`/r/${r.restaurant_id}`} className="row-link"
+            onFocus={() => onHover(r.restaurant_id)} onBlur={() => onHover(null)}>
+        <span className={`dot d-${sig.tone}`}><Icon size={13} /></span>
+        <span className="row-main">
+          <span className="row-top">
+            <span className="row-name">{r.name}</span>
+            <span className="row-dist">{formatDistance(r.distance_m)}</span>
+          </span>
+          <span className="row-sub"><b className={`t-${sig.tone}`}>{sig.label}</b>　{sig.detail}</span>
+        </span>
+        <span className={`row-score t-${norm === null ? 'dim' : sig.tone}`}
+              title={norm === null ? '少過 3 個訊號，唔顯示分數' : '你名單入面嘅加權平均(−1 至 +1)'}>
           {norm !== null ? signed(norm, 2) : '—'}
         </span>
-      </div>
-
-      <div className="card-detail">
-        <span className={`badge tone-${sig.tone}`}>{sig.label}</span>
-        <span>{sig.detail}</span>
-      </div>
-
-      {r.n_signal > 0 && (
-        <div className="quad">
-          {r.trusted_pos    > 0 && <i className="pos">信 · 讚 {r.trusted_pos}</i>}
-          {r.trusted_neg    > 0 && <i className="neg">信 · 彈 {r.trusted_neg}</i>}
-          {r.distrusted_pos > 0 && <i className="neg">唔信 · 讚 {r.distrusted_pos}</i>}
-          {r.distrusted_neg > 0 && <i className="pos">唔信 · 彈 {r.distrusted_neg}</i>}
-          {r.unknown_pos    > 0 && <i>未評 · 讚 {r.unknown_pos}</i>}
-        </div>
-      )}
-    </Link>
+      </Link>
+    </li>
   );
 }

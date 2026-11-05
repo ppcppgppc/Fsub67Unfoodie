@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { db } from '@/lib/db';
 import { useUser } from '@/lib/user';
 import { errMsg, safeHttpUrl, signed, toneClass } from '@/lib/format';
+import { IconChevronLeft } from '@/lib/icons';
 import {
   getRestaurant, restaurantMentions, rateRestaurant, myRating, contribution,
   SENTIMENT_SCALE, tierInfo, type MentionDetail, type Restaurant,
@@ -59,7 +60,7 @@ export default function RestaurantPage() {
 
   return (
     <>
-      <Link href="/" className="back">← 探索</Link>
+      <Link href="/" className="back"><IconChevronLeft size={22} />探索</Link>
       <h1>{r.name}</h1>
       <p className="sub">
         {[r.name_local, r.address, (r.cuisine ?? []).join('、')].filter(Boolean).join(' · ')}
@@ -89,7 +90,7 @@ export default function RestaurantPage() {
 
       <h2>邊個講過（{ms.length}）</h2>
       {ms.length === 0 && <p className="empty">未有人講過呢間舖</p>}
-      {ms.map((m) => <MentionRow key={m.id} m={m} />)}
+      {ms.length > 0 && <div className="group">{ms.map((m) => <MentionRow key={m.id} m={m} />)}</div>}
 
       {ms.length > 0 && (
         <p className="muted">
@@ -119,8 +120,8 @@ function MentionRow({ m }: { m: MentionDetail }) {
             m.posted_at?.slice(0, 10),
             `配對 ${(m.match_confidence * 100).toFixed(0)}%`,
           ].filter(Boolean).map((s, i, all) => (
-            // 分隔號跟喺前一段尾,斷行時唔會有「·」吊喺行頭
-            <span key={i} className="nw">{s}{i < all.length - 1 && ' · '}</span>
+            // 每段唔准斷,但分隔號要喺 span 外面,段與段之間先斷得行
+            <Fragment key={i}><span className="nw">{s}</span>{i < all.length - 1 && ' · '}</Fragment>
           ))}
         </div>
         <div className="links">

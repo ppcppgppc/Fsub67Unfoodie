@@ -1,27 +1,28 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Linking, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { db, useUser } from '@/lib/db';
-import { useTheme, type Theme } from '@/lib/theme';
+import { db } from '@/lib/db';
+import { useUser } from '@/lib/user';
+import { useTheme, useAppearance, type Appearance, type Theme } from '@/lib/theme';
+import { Btn } from '@/lib/ui';
 
 export default function Me() {
   const t = useTheme();
   const s = st(t);
   const userId = useUser();
   const router = useRouter();
+  const { pref, setPref } = useAppearance();
+  const options: [Appearance, string][] = [['dark', '深色'], ['light', '淺色'], ['system', '跟系統']];
 
   return (
-    <View style={s.wrap}>
-      <Text style={s.h}>我的</Text>
-
+    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={s.wrap}>
       <View style={s.box}>
         <Text style={s.boxH}>你嘅資料</Text>
         <Text style={s.p}>
-          信任名單同餐廳評分由 Postgres RLS 鎖死,唔會離開你個 account,
+          信任名單同餐廳評分由 Postgres RLS 鎖死，唔會離開你個 account，
           唔會賣、唔會分享、唔會做 analytics。
         </Text>
         <Text style={s.p}>
-          餐廳評分預設私人。要 opt-in 之後先會攞去同其他人做口味配對,
-          而且淨係用評分,永遠唔會用你嘅信任名單。
+          餐廳評分預設私人。口味配對淨係用評分，永遠唔會用你嘅信任名單。
         </Text>
       </View>
 
@@ -30,31 +31,49 @@ export default function Me() {
         <Text style={s.p}>唔收廣告 · 唔向用戶收費 · 唔賣餐廳排名</Text>
       </View>
 
-      <Pressable onPress={() => Linking.openURL('https://fsub.app')}>
-        <Text style={s.link}>Fsub 系列</Text>
+      <View style={s.box}>
+        <Text style={s.boxH}>外觀</Text>
+        <View style={s.seg} accessibilityRole="radiogroup">
+          {options.map(([v, label]) => (
+            <Pressable key={v} onPress={() => setPref(v)} accessibilityRole="radio"
+                       accessibilityState={{ checked: pref === v }}
+                       style={[s.segBtn, pref === v && { backgroundColor: t.accent }]}>
+              <Text style={{ color: pref === v ? t.onAccent : t.inkSoft, fontWeight: pref === v ? '600' : '400', fontSize: 14 }}>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <Pressable style={s.item} onPress={() => router.push('/takedown')} accessibilityRole="button">
+        <Text style={s.itemTx}>要求下架</Text>
+        <Text style={s.itemSub}>你係被提及嘅食評人或者餐廳？48 小時內回覆</Text>
+      </Pressable>
+      <Pressable style={s.item} onPress={() => Linking.openURL('https://github.com/ppcppgppc/Fsub67Unfoodie')}
+                 accessibilityRole="link">
+        <Text style={s.itemTx}>原始碼 ↗</Text>
+        <Text style={s.itemSub}>AGPL-3.0 · Fsub 系列</Text>
       </Pressable>
 
+      <View style={{ flex: 1 }} />
       {userId ? (
-        <Pressable style={s.btn} onPress={async () => { await db().auth.signOut(); }}>
-          <Text style={{ color: t.inkSoft }}>登出</Text>
-        </Pressable>
+        <Btn label="登出" kind="ghost" onPress={() => { db().auth.signOut(); }} />
       ) : (
-        <Pressable style={s.btn} onPress={() => router.push('/login')}>
-          <Text style={{ color: t.inkSoft }}>登入</Text>
-        </Pressable>
+        <Btn label="登入" onPress={() => router.push('/login')} />
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const st = (t: Theme) => StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: t.bg, padding: 18, gap: 14 },
-  h: { fontSize: 24, fontWeight: '700', color: t.ink, letterSpacing: -0.5 },
-  box: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.line,
-         borderRadius: 12, padding: 14, gap: 8 },
+  wrap: { flexGrow: 1, padding: 16, gap: 12 },
+  box: { backgroundColor: t.surface, borderWidth: 1, borderColor: t.line, borderRadius: 12, padding: 14, gap: 8 },
   boxH: { fontSize: 14, fontWeight: '600', color: t.ink },
   p: { fontSize: 13, color: t.inkSoft, lineHeight: 20 },
-  link: { color: t.inkSoft, fontSize: 13, textDecorationLine: 'underline' },
-  btn: { marginTop: 'auto', borderWidth: 1, borderColor: t.line, borderRadius: 9,
-         padding: 12, alignItems: 'center' },
+  item: { borderWidth: 1, borderColor: t.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, gap: 2 },
+  itemTx: { color: t.ink, fontSize: 14.5, fontWeight: '500' },
+  itemSub: { color: t.inkFaint, fontSize: 12 },
+  seg: { flexDirection: 'row', borderWidth: 1, borderColor: t.border, borderRadius: 10, overflow: 'hidden' },
+  segBtn: { flex: 1, alignItems: 'center', paddingVertical: 9 },
 });
