@@ -32,6 +32,7 @@
   --good-t: #2f6d3a;
   --bad-t:  #a8321f;
   --warn-t: #a8550c;
+  --on-good: #ffffff; --on-bad: #ffffff; --on-warn: #121211; --on-quiet: #121211;
 
   --me:   #2f6fde;
   --halo: #fbfaf6;
@@ -67,6 +68,7 @@
     --good-t: #82d993;
     --bad-t:  #ff7f6c;
     --warn-t: #ffab5e;
+    --on-good: #121211; --on-bad: #121211; --on-warn: #121211; --on-quiet: #ffffff;
 
     --me:   #5b9bff;
     --halo: #121211;
@@ -97,6 +99,7 @@
     --good-t: #82d993;
     --bad-t:  #ff7f6c;
     --warn-t: #ffab5e;
+    --on-good: #121211; --on-bad: #121211; --on-warn: #121211; --on-quiet: #ffffff;
 
     --me:   #5b9bff;
     --halo: #121211;
@@ -178,12 +181,13 @@ h2 { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 34px 0 10p
 /* 細圓點 icon */
 .dot {
   flex: none; width: 24px; height: 24px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff;
+  display: grid; place-items: center;
 }
-.d-good, .g-good       { background: var(--good); }
-.d-bad, .g-bad         { background: var(--bad); }
-.d-warn, .g-warn       { background: var(--warn); }
-.d-neutral, .g-neutral { background: var(--quiet); }
+/* 圖示色跟底色換:深色模式啲底色好光,白色唔夠對比(Fsub tokens 嘅 on* 角色) */
+.d-good, .g-good       { background: var(--good);  color: var(--on-good); }
+.d-bad, .g-bad         { background: var(--bad);   color: var(--on-bad); }
+.d-warn, .g-warn       { background: var(--warn);  color: var(--on-warn); }
+.d-neutral, .g-neutral { background: var(--quiet); color: var(--on-quiet); }
 
 /* ---------- 掣 ---------- */
 
@@ -331,7 +335,7 @@ select:disabled { opacity: .5; }
 }
 .pin-face {
   width: 28px; height: 28px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff;
+  display: grid; place-items: center;
   box-shadow: 0 0 0 2px var(--halo), 0 2px 6px rgba(0, 0, 0, .25);
   transition: transform .18s cubic-bezier(.3, 1.5, .6, 1);
 }
